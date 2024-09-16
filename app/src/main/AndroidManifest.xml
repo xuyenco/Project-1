@@ -22,6 +22,11 @@
             android:name=".ui.activity.OrderTab"
             android:exported="true"
             android:theme="@style/Theme.Project1">
+        </activity>
+        <activity
+            android:name=".ui.activity.ReservationTab"
+            android:exported="true"
+            android:theme="@style/Theme.Project1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
