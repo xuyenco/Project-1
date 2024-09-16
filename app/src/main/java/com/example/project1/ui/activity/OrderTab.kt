@@ -10,267 +10,192 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.project1.data.Dishes
-import com.example.project1.data.Order
-import com.example.project1.data.OrderDetail
-import com.example.project1.data.Table
-import com.example.project1.data.Table_Order
+import com.example.project1.data.Items
+import com.example.project1.data.Orders
+import com.example.project1.data.Orders_Items
+import com.example.project1.data.Tables
+import com.example.project1.data.Orders_Tables
 import com.example.project1.ui.section.OrderTabItem
 import com.example.project1.ui.theme.Project1Theme
+import java.util.Date
 
-private val tableList = listOf(
-    Table(
-        id = 0,
-        tableNumber = 1,
-        tableSeatNumber = 2,
-        tablePosition = 2,
-        tableStatus = true
-    ), Table(
-        id = 1,
-        tableNumber = 2,
-        tableSeatNumber = 2,
-        tablePosition = 2,
-        tableStatus = true
-    ), Table(
-        id = 2,
-        tableNumber = 3,
-        tableSeatNumber = 2,
-        tablePosition = 2,
-        tableStatus = true
-    ), Table(
-        id = 3,
-        tableNumber = 3,
-        tableSeatNumber = 3,
-        tablePosition = 3,
-        tableStatus = true
-    ), Table(
-        id = 4,
-        tableNumber = 4,
-        tableSeatNumber = 4,
-        tablePosition = 4,
-        tableStatus = true
-    ), Table(
-        id = 5,
-        tableNumber = 5,
-        tableSeatNumber = 5,
-        tablePosition = 5,
-        tableStatus = true
-    ), Table(
-        id = 6,
-        tableNumber = 6,
-        tableSeatNumber = 6,
-        tablePosition = 6,
-        tableStatus = true
+private val tablesItemLists = listOf(
+    Tables(
+        tables_id = 0,
+        name = "Table 1",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 1,
+        name = "Table 2",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 2,
+        name = "Table 3",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 3,
+        name = "Table 4",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 4,
+        name = "Table 5",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 5,
+        name = "Table 6",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),
+
     )
-
+private val Orders_TablesList = listOf(
+    Orders_Tables(
+        orders_id = 0,
+        tables_id = 0,
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders_Tables(
+        orders_id = 1,
+        tables_id = 1,
+        created_at = Date(),
+        updated_at = Date()
+    )
 )
-private val tableOrderList = listOf(
-    Table_Order(
-       tableId = 0,
-       orderId = 0
-    ),Table_Order(
-        tableId = 1,
-        orderId = 1
-    ),Table_Order(
-        tableId = 2,
-        orderId = 2
-    ),Table_Order(
-        tableId = 3,
-        orderId = 3
+private val Orders_ItemsList = listOf(
+    Orders_Items(
+        orders_id = 0,
+        items_id = 0,
+        quantity = 1,
+        description = "Không hành",
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders_Items(
+        orders_id = 0,
+        items_id = 1,
+        quantity = 1,
+        description = "Không béo",
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders_Items(
+        orders_id = 0,
+        items_id = 2,
+        quantity = 1,
+        description = "Không hành",
+        created_at = Date(),
+        updated_at = Date()
+    ), Orders_Items(
+        orders_id = 0,
+        items_id = 3,
+        quantity = 1,
+        description = "Không hành",
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders_Items(
+        orders_id = 1,
+        items_id = 0,
+        quantity = 1,
+        description = "Không hành",
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders_Items(
+        orders_id = 1,
+        items_id = 1,
+        quantity = 1,
+        description = "Không hành",
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders_Items(
+        orders_id = 1,
+        items_id = 2,
+        quantity = 1,
+        description = "Không hành",
+        created_at = Date(),
+        updated_at = Date()
     ),
 )
-private val OrderList = listOf(
-    Order(
-        id = 0,
-        state = false
-    ),Order(
-        id = 1,
-        state = false
-    ),Order(
-        id = 2,
-        state = false
-    ),Order(
-        id = 3,
-        state = false
-    ),Order(
-        id = 0,
-        state = false
-    ),Order(
-        id = 1,
-        state = false
-    ),Order(
-        id = 2,
-        state = false
-    ),Order(
-        id = 3,
-        state = false
+private val OrdersLists = listOf(
+    Orders(
+        orders_id = 0,
+        status = false,
+        created_at = Date(),
+        updated_at = Date()
+    ),Orders(
+        orders_id = 1,
+        status = false,
+        created_at = Date(),
+        updated_at = Date()
     ),
 )
-private val OrderDishesList = listOf(
-    OrderDetail(
-        idOrder = 0,
-        idDish = 0,
-        note = "Không hành",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 0,
-        idDish = 1,
-        note = "Ít nước béo",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 0,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 0,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),
-
-    OrderDetail(
-        idOrder = 1,
-        idDish = 0,
-        note = "Không hành",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 1,
-        idDish = 1,
-        note = "Ít nước béo",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 1,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 1,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),
-
-    OrderDetail(
-        idOrder = 2,
-        idDish = 0,
-        note = "Không hành",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 2,
-        idDish = 1,
-        note = "Ít nước béo",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 2,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 2,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),OrderDetail(
-        idOrder = 2,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 2,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),
-
-    OrderDetail(
-        idOrder = 3,
-        idDish = 0,
-        note = "Không hành",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 3,
-        idDish = 1,
-        note = "Ít nước béo",
-        quantity = 1
-    ),
-    OrderDetail(
-        idOrder = 3,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 3,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),OrderDetail(
-        idOrder = 3,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 3,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),OrderDetail(
-        idOrder = 3,
-        idDish = 2,
-        note = "",
-        quantity = 4
-    ),
-    OrderDetail(
-        idOrder = 3,
-        idDish = 3,
-        note = "",
-        quantity = 2
-    ),
-
-)
-private val DishesList = listOf(
-    Dishes(
-        id = 0,
-        name = "Ba chí cháy cạnh",
-        unit = "Đĩa",
-        price = 10000,
-        category = "Thịt"
-    ),
-    Dishes(
-        id = 1,
-        name = "Cơm trắng",
-        unit = "Đĩa",
-        price = 10000,
-        category = "Thịt"
-    ),
-    Dishes(
-        id = 2,
-        name = "Pepsi",
-        unit = "Lon",
-        price = 10000,
-        category = "Đồ uống"
-    ),
-    Dishes(
-        id = 3,
+private val ItemsLists = listOf(
+    Items(
+        items_id = 0,
         name = "Cá kho riềng",
+        image_url = "image",
+        quantity = 1,
         unit = "Đĩa",
+        category = "Thịt",
         price = 10000,
-        category = "Thịt"
+        created_at = Date(),
+        updated_at = Date()
+    ),Items(
+        items_id = 1,
+        name = "Thịt ba chỉ rang cháy cạnh",
+        image_url = "image",
+        quantity = 1,
+        unit = "Đĩa",
+        category = "Thịt",
+        price = 10000,
+        created_at = Date(),
+        updated_at = Date()
+    ),Items(
+        items_id = 2,
+        name = "Canh bò hầm",
+        image_url = "image",
+        quantity = 1,
+        unit = "Đĩa",
+        category = "Canh",
+        price = 10000,
+        created_at = Date(),
+        updated_at = Date()
+    ),Items(
+        items_id = 3,
+        name = "Pepsi",
+        image_url = "image",
+        quantity = 1,
+        unit = "Đĩa",
+        category = "Đồ uống",
+        price = 10000,
+        created_at = Date(),
+        updated_at = Date()
     ),
 )
 class OrderTab : ComponentActivity(){
@@ -289,40 +214,59 @@ class OrderTab : ComponentActivity(){
         }
     }
 }
-
 @Composable
 fun OrderTabScreen() {
+    // Lưu trữ danh sách orders chưa hoàn thành
+    var orders by remember { mutableStateOf(OrdersLists.filter { !it.status }) }
+    // Lưu trữ trạng thái checkbox cho từng order
+    val checkedStatesMap = remember { mutableStateOf(mutableMapOf<Int, List<Boolean>>()) }
+
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(5),
         contentPadding = PaddingValues(5.dp),
         content = {
-            items(OrderList.size) { index ->
-                val order = OrderList[index]
+            items(orders.size) { index ->
+                val order = orders[index]
 
                 // Lọc các Table liên kết với Order hiện tại
-                val tablesForOrder = tableOrderList
-                    .filter { it.orderId == order.id }
+                val tablesForOrder = Orders_TablesList
+                    .filter { it.orders_id == order.orders_id }
                     .mapNotNull { tableOrder ->
-                        tableList.find { it.id == tableOrder.tableId }
+                        tablesItemLists.find { it.tables_id == tableOrder.tables_id }
                     }
 
-                val dishesForOrder = OrderDishesList
-                    .filter { it.idOrder == order.id }
-                    .mapNotNull { orderDetail ->
-                        DishesList.find { it.id == orderDetail.idDish }
+                val dishesForOrder = Orders_ItemsList
+                    .filter { it.orders_id == order.orders_id }
+                    .mapNotNull { orderItems ->
+                        ItemsLists.find { it.items_id == orderItems.items_id }
                     }
 
-                // Gọi OrderTabItem với danh sách tables và dishes đã lọc
+                // Lấy trạng thái checkbox hiện tại từ map hoặc khởi tạo nếu chưa có
+                val checkedStates = checkedStatesMap.value[order.orders_id] ?: List(dishesForOrder.size) { false }
+
                 OrderTabItem(
-                    dishesList = dishesForOrder,
-                    tableList = tablesForOrder
+                    itemsList = dishesForOrder,
+                    tablesList = tablesForOrder,
+                    checkedStates = checkedStates,
+                    onCheckedChange = { updatedStates ->
+                        // Cập nhật trạng thái checkbox trong map
+                        checkedStatesMap.value = checkedStatesMap.value.toMutableMap().apply {
+                            this[order.orders_id] = updatedStates
+                        }
+                    },
+                    onOrderCompleted = {
+                        // Cập nhật state của Order khi hoàn thành
+                        orders = orders.map { if (it.orders_id == order.orders_id) it.copy(status = true) else it }
+                        // Lọc lại danh sách để chỉ còn các Order chưa hoàn thành
+                        orders = orders.filter { !it.status }
+                        // Xóa trạng thái checkbox của order đã hoàn thành khỏi map
+                        checkedStatesMap.value = checkedStatesMap.value.toMutableMap().apply {
+                            remove(order.orders_id)
+                        }
+                    }
                 )
             }
         },
         modifier = Modifier.fillMaxSize()
     )
 }
-
-
-
-

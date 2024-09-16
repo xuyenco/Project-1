@@ -1,10 +1,12 @@
 package com.example.project1.data
 
+import java.util.Date
+
 data class Bill(
-    val idBill : Int,
-    val totalMoney : Double,
-    val paymentMethod : String,
-    val dateTime : String,
-    val idOrder: Int,
-    val idStaff: Int
+    val bill_id : Int,
+    val total : Double,
+    val orders_id : Int ,
+    val staff_id : Int,
+    val created_at : Date,
+    val updated_at : Date
 )

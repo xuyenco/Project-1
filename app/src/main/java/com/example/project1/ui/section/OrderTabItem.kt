@@ -1,6 +1,5 @@
 package com.example.project1.ui.section
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,24 +7,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.example.project1.data.Dishes
-import com.example.project1.data.Table
+import com.example.project1.data.Items
+import com.example.project1.data.Tables
+
 
 @Composable
-fun OrderTabItem(dishesList: List<Dishes>, tableList: List<Table>) {
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .border(1.dp, Color.LightGray)) {
+fun OrderTabItem(
+    itemsList: List<Items>,
+    tablesList: List<Tables>,
+    checkedStates: List<Boolean>,
+    onCheckedChange: (List<Boolean>) -> Unit,
+    onOrderCompleted: () -> Unit
+) {
+    Column {
         // Hiển thị danh sách các table
         Box(
             modifier = Modifier
@@ -40,42 +41,46 @@ fun OrderTabItem(dishesList: List<Dishes>, tableList: List<Table>) {
                         strokeWidth
                     )
                 }
-                .padding(8.dp) // Thêm padding cho Box
+                .padding(8.dp)
         ) {
-            Column { // Thay vì sử dụng for, dùng Column để xếp chồng các Text
-                for (table in tableList) {
+            Column {
+                for (table in tablesList) {
                     Text(
-                        text = "Table ${table.tableNumber}",
-                        modifier = Modifier.padding(bottom = 4.dp) // Padding giữa các Text
+                        text = table.name,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
             }
         }
 
         // Hiển thị danh sách các dishes
-        Box(
-            modifier = Modifier.padding(8.dp)
-        ) {
+        Box(modifier = Modifier.padding(8.dp)) {
             Column {
-                // Sử dụng remember để giữ trạng thái cho các checkbox
-                val checkedStates = remember { mutableStateOf(List(dishesList.size) { false }) }
-
-                for ((index, dish) in dishesList.withIndex()) {
+                for ((index, dish) in itemsList.withIndex()) {
                     Row(
-                        modifier = Modifier.padding(vertical = 4.dp) // Thêm padding giữa các dòng
+                        modifier = Modifier.padding(vertical = 4.dp)
                     ) {
+                        val isChecked = checkedStates[index]
+
                         Text(
                             text = dish.name,
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(end = 8.dp) // Padding bên phải của Text
+                                .padding(end = 8.dp)
+                                .alpha(if (isChecked) 0.5f else 1f),
+                            textDecoration = if (isChecked) TextDecoration.LineThrough else null
                         )
                         Checkbox(
-                            checked = checkedStates.value[index],
+                            checked = isChecked,
                             onCheckedChange = { checked ->
-                                // Cập nhật trạng thái checkbox tại vị trí index
-                                checkedStates.value = checkedStates.value.toMutableList().apply {
+                                val updatedStates = checkedStates.toMutableList().apply {
                                     this[index] = checked
+                                }
+                                onCheckedChange(updatedStates)
+
+                                // Kiểm tra nếu tất cả checkbox đều được checked
+                                if (updatedStates.all { it }) {
+                                    onOrderCompleted()
                                 }
                             }
                         )
@@ -85,4 +90,3 @@ fun OrderTabItem(dishesList: List<Dishes>, tableList: List<Table>) {
         }
     }
 }
-

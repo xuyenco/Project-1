@@ -1,7 +1,6 @@
 package com.example.project1.ui.activity
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,24 +25,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.project1.data.Reservation
 import com.example.project1.data.SideNavbar
-import com.example.project1.data.Table
-import com.example.project1.data.Table_Reservation
+import com.example.project1.data.Tables
+import com.example.project1.data.Tables_Reservations
 import com.example.project1.ui.theme.Project1Theme
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.section.TableItem
@@ -67,112 +65,123 @@ private val navBarItemList = listOf(
         icon = Icons.Default.Restaurant
     )
 )
-private val tableItemList = listOf(
-    Table(
-        id = 0,
-        tableNumber = 1,
-        tableSeatNumber = 2,
-        tablePosition = 2,
-        tableStatus = true
-    ),Table(
-        id = 1,
-        tableNumber = 2,
-        tableSeatNumber = 2,
-        tablePosition = 2,
-        tableStatus = true
-    ),Table(
-        id = 2,
-        tableNumber = 3,
-        tableSeatNumber = 2,
-        tablePosition = 2,
-        tableStatus = true
-    ),Table(
-        id = 3,
-        tableNumber = 3,
-        tableSeatNumber = 3,
-        tablePosition = 3,
-        tableStatus = true
-    ),Table(
-        id = 4,
-        tableNumber = 4,
-        tableSeatNumber = 4,
-        tablePosition = 4,
-        tableStatus = true
-    ),Table(
-        id = 5,
-        tableNumber = 5,
-        tableSeatNumber = 5,
-        tablePosition = 5,
-        tableStatus = true
-    ),Table(
-        id = 6,
-        tableNumber = 6,
-        tableSeatNumber = 6,
-        tablePosition = 6,
-        tableStatus = true
-    )
+private val tablesItemLists = listOf(
+    Tables(
+        tables_id = 0,
+        name = "Table 1",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 1,
+        name = "Table 2",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 2,
+        name = "Table 3",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 3,
+        name = "Table 4",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 4,
+        name = "Table 5",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),Tables(
+        tables_id = 5,
+        name = "Table 6",
+        quantity = 4,
+        location = "Location 1",
+        status = "Empty",
+        create_at = Date(),
+        update_at = Date()
+    ),
 
 )
 private val reservationItemList = listOf(
     Reservation(
-        id = 0,
-        dateTime = "2024/09/03 3:15:00",
-        name = "Duong",
-        number = "0986916220"
+        reservation_id = 0,
+        name = "Nguyễn Văn A",
+        phone = "0909999999",
+        email = "a@a.com",
+        quantity = 4,
+        time = Date(),
+        created_at = Date(),
+        updated_at = Date()
     ),Reservation(
-        id = 1,
-        dateTime = "2024/09/03 4:15:00",
-        name = "Duong",
-        number = "0986916220"
+        reservation_id = 1,
+        name = "Nguyễn Văn B",
+        phone = "0909999999",
+        email = "a@a.com",
+        quantity = 4,
+        time = Date(),
+        created_at = Date(),
+        updated_at = Date()
     ),Reservation(
-        id = 2,
-        dateTime = "2024/09/03 5:15:00",
-        name = "Duong",
-        number = "0986916220"
+        reservation_id = 2,
+        name = "Nguyễn Văn C",
+        phone = "0909999999",
+        email = "a@a.com",
+        quantity = 4,
+        time = Date(),
+        created_at = Date(),
+        updated_at = Date()
     ),Reservation(
-        id = 3,
-        dateTime = "2024/09/03 6:15:00",
-        name = "Duong",
-        number = "0986916220"
-    ),Reservation(
-        id = 4,
-        dateTime = "2024/09/03 6:15:00",
-        name = "Duong",
-        number = "0986916220"
-    ),Reservation(
-        id = 5,
-        dateTime = "2024/09/03 9:15:00",
-        name = "Duong",
-        number = "0986916220"
-    ),Reservation(
-        id = 6,
-        dateTime = "2024/09/03 8:15:00",
-        name = "Duong",
-        number = "0986916220"
-    )
+        reservation_id = 3,
+        name = "Nguyễn Văn D",
+        phone = "0909999999",
+        email = "a@a.com",
+        quantity = 4,
+        time = Date(),
+        created_at = Date(),
+        updated_at = Date()
+    ),
 )
-private val Table_ReservationItemList = listOf(
-    Table_Reservation(
-        tableId = 0,
-        reservationId = 0
-    ),Table_Reservation(
-        tableId = 1,
-        reservationId = 1
-    ),Table_Reservation(
-        tableId = 2,
-        reservationId = 2
-    ),Table_Reservation(
-        tableId = 3,
-        reservationId = 3
-    ),Table_Reservation(
-        tableId = 0,
-        reservationId = 4
-    ),Table_Reservation(
-        tableId = 1,
-        reservationId = 5
-    ),Table_Reservation(
-        tableId = 2,
-        reservationId = 6
+private val TablesReservationsItemLists = listOf(
+    Tables_Reservations(
+        tables_id = 0,
+        reservations_id = 0,
+        created_at = Date(),
+        updated_at = Date()
+    ),Tables_Reservations(
+        tables_id = 1,
+        reservations_id = 1,
+        created_at = Date(),
+        updated_at = Date()
+    ),Tables_Reservations(
+        tables_id = 2,
+        reservations_id = 2,
+        created_at = Date(),
+        updated_at = Date()
+    ),Tables_Reservations(
+        tables_id = 3,
+        reservations_id = 3,
+        created_at = Date(),
+        updated_at = Date()
+    ),Tables_Reservations(
+        tables_id = 4,
+        reservations_id = 4,
+        created_at = Date(),
+        updated_at = Date()
     )
 )
 class MainActivity : ComponentActivity() {
@@ -249,7 +258,8 @@ fun ThreeColumnLayout() {
 @Composable
 fun ContentLeft(onTableClick: (Int) -> Unit) {
     var inputtime by remember { mutableStateOf("") }
-    var tableColors by remember { mutableStateOf(tableItemList.map { Color.Transparent }) }
+    var reservationstate by remember { mutableStateOf(tablesItemLists.map { true }) }
+    var selectedTableIds = remember { mutableStateListOf<Int?>() }
     val context = LocalContext.current
 
     val date = getCurrentDateTime()
@@ -261,27 +271,24 @@ fun ContentLeft(onTableClick: (Int) -> Unit) {
                 value = inputtime,
                 onValueChange = { inputtime = it },
                 label = { Text(text = "Time") },
-                leadingIcon = { Icon(imageVector = Icons.Default.Timer, contentDescription = "Home") },
+                leadingIcon = { Icon(imageVector = Icons.Default.Timer, contentDescription = "Time Icon") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .weight(4f))
+                    .weight(4f)
+            )
             Button(
                 onClick = {
+                    selectedTableIds.clear()
                     val inputDate = inputtime.toDate("yyyy/MM/dd HH:mm:ss")
                     if (inputDate != null) {
-                        tableColors = tableItemList.map { table ->
-                            val reservationsForTable = Table_ReservationItemList
-                                .filter { it.tableId == table.id }
+                        reservationstate = tablesItemLists.map { table ->
+                            val reservationsForTable = TablesReservationsItemLists
+                                .filter { it.tables_id == table.tables_id }
                                 .mapNotNull { tableReservation ->
-                                    reservationItemList.find { it.id == tableReservation.reservationId }
+                                    reservationItemList.find { it.reservation_id == tableReservation.reservations_id }
                                 }
-
-                            if (!checkReservation(reservationsForTable, inputDate)) {
-                                Color.Black
-                            } else {
-                                Color.Transparent
-                            }
+                            checkReservation(reservationsForTable, inputDate)
                         }
                     } else {
                         Toast.makeText(context, "Thời gian không hợp lệ", Toast.LENGTH_SHORT).show()
@@ -292,41 +299,50 @@ fun ContentLeft(onTableClick: (Int) -> Unit) {
                     .padding(8.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Summit")
+                Text(text = "Submit")
             }
-
         }
 
         Button(onClick = { /*TODO*/ },
-            modifier = Modifier
-                .fillMaxWidth()) {
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(text = "Đặt bàn")
         }
+
         LazyVerticalGrid(
             columns = GridCells.Fixed(5),
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp)
         ) {
-            items(tableItemList.size) { index ->
+            items(tablesItemLists.size) { index ->
                 TableItem(
-                    table = tableItemList[index],
-                    onClick = { onTableClick(tableItemList[index].id) },
-                    backgroundColor = tableColors[index] // Thay đổi màu nền của bàn
+                    tables = tablesItemLists[index],
+                    onClick = { onTableClick(tablesItemLists[index].tables_id) },
+                    selectTable = {
+                        if (reservationstate[index]) {
+                            if (selectedTableIds.contains(tablesItemLists[index].tables_id)) {
+                                selectedTableIds.remove(tablesItemLists[index].tables_id)
+                            } else {
+                                selectedTableIds.add(tablesItemLists[index].tables_id)
+                            }
+                        }
+                    },
+                    reservationState = reservationstate[index],
+                    isSelected = selectedTableIds.contains(tablesItemLists[index].tables_id)
                 )
             }
         }
-
     }
 }
+
 @Composable
 fun ContentRight(selectedTableId: Int?) {
     if (selectedTableId != null) {
         // Lấy tất cả các reservation liên quan đến bàn đã chọn
-        val reservationsForTable = Table_ReservationItemList
-            .filter { it.tableId == selectedTableId }
+        val reservationsForTable = TablesReservationsItemLists
+            .filter { it.tables_id == selectedTableId }
             .mapNotNull { tableReservation ->
-                reservationItemList.find { it.id == tableReservation.reservationId }
+                reservationItemList.find { it.reservation_id == tableReservation.reservations_id }
             }
 
         if (reservationsForTable.isNotEmpty()) {
@@ -335,8 +351,8 @@ fun ContentRight(selectedTableId: Int?) {
                 reservationsForTable.forEach { reservation ->
                     Column(modifier = Modifier.padding(8.dp)) {
                         Text(text = "Tên: ${reservation.name}")
-                        Text(text = "Số điện thoại: ${reservation.number}")
-                        Text(text = "Thời gian: ${reservation.dateTime}")
+                        Text(text = "Số điện thoại: ${reservation.phone}")
+                        Text(text = "Thời gian: ${reservation.time.toString("yyyy/MM/dd HH:mm:ss")}")
                     }
                     Divider()
                 }
@@ -367,13 +383,13 @@ fun String.toDate(format: String, locale: Locale = Locale.getDefault()): Date? {
 fun checkReservation (reservationList : List<Reservation> , inputTime : Date): Boolean {
     val inputTimeEnd = inputTime.time + 2 * 60 * 60 * 100
     for (reservation in reservationList) {
-       val reservation1Date = reservation.dateTime.toDate("yyyy/MM/dd HH:mm:ss")
+       val reservation1Date = reservation.time
         if (reservation1Date != null && reservation1Date.time < inputTime.time &&  inputTime.time < reservation1Date.time + 2 * 60 * 60 * 1000 ) {
             return false
         }
     }
     for (reservation in reservationList) {
-        val reservation1Date = reservation.dateTime.toDate("yyyy/MM/dd HH:mm:ss")
+        val reservation1Date = reservation.time
         if (reservation1Date != null && reservation1Date.time < inputTimeEnd &&  inputTimeEnd <reservation1Date.time + 2 * 60 * 60 * 1000 ) {
             return false
         }
