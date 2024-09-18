@@ -1,6 +1,7 @@
 package com.example.project1.ui.activity
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -24,11 +25,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.TableRestaurant
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,13 +53,26 @@ import com.example.project1.data.Menu
 import com.example.project1.data.SideNavbar
 import com.example.project1.data.Table
 import com.example.project1.ui.section.MenuItem
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.example.project1.data.Reservation
+import com.example.project1.data.SideNavbar
+import com.example.project1.data.Tables
+import com.example.project1.data.Tables_Reservations
 import com.example.project1.ui.theme.Project1Theme
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.section.TableItem
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-
-
-
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 private val navBarItemList = listOf(
     SideNavbar(
         title = "Home",
@@ -131,46 +148,16 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Project1Theme {
-                SetNavbarColor(color = MaterialTheme.colorScheme.background)
+                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HomeScreen()
+                    Text(text = "Đây là trang chủ")
                 }
-
             }
         }
     }
-}
-
-@Composable
-private fun SetNavbarColor(color : Color){
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        systemUiController.setStatusBarColor(color = color)
-    }
-}
-
-
-@Composable
-fun HomeScreen() {
-    ModalNavigationDrawer(
-        drawerContent = {
-            ModalDrawerSheet {
-                Text("Drawer title", modifier = Modifier.padding(16.dp))
-                Divider()
-                for(item in navBarItemList) {
-                    NavigationDrawerItem(sideNavbar = item)
-                }
-                // ...other drawer items
-            }
-        }
-    ) {
-        // Screen content
-        ThreeColumnLayout()
-    }
-
 }
 
 @Composable
