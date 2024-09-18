@@ -64,23 +64,19 @@ fun ItemBox(
 }
 
 @Composable
-fun TableItem(table : Table) {
+fun TableItem(table: Table, onClick: () -> Unit) {
     ItemBox(
         icon = Icons.Default.TableBar,
         title = "Bàn số ${table.tableNumber}",
-        onClick = {
-
-        }
+        onClick = onClick
     )
 }
 
 @Composable
-fun MenuItem(menu: Menu) {
+fun MenuItem(menu: Menu, onClick: () -> Unit) {
     ItemBox(
         imageUrl = menu.imageUrl,
-        title = "${menu.itemName} - ${menu.itemPrice} $",
-        onClick = {
-
-        }
+        title = "${menu.itemName} \n ${menu.itemPrice} vnd",
+        onClick = onClick
     )
 }
