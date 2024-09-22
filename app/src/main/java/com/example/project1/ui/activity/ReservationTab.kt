@@ -1,6 +1,7 @@
 package com.example.project1.ui.activity
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -42,10 +45,14 @@ import com.example.project1.data.Reservation
 import com.example.project1.data.SideNavbar
 import com.example.project1.data.Tables
 import com.example.project1.data.Tables_Reservations
+import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.section.TableItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -65,63 +72,6 @@ private val navBarItemList = listOf(
         icon = Icons.Default.Restaurant
     )
 )
-private val tablesItemLists = listOf(
-    Tables(
-        tables_id = 0,
-        name = "Table 1",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-    Tables(
-        tables_id = 1,
-        name = "Table 2",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-    Tables(
-        tables_id = 2,
-        name = "Table 3",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-    Tables(
-        tables_id = 3,
-        name = "Table 4",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-    Tables(
-        tables_id = 4,
-        name = "Table 5",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-    Tables(
-        tables_id = 5,
-        name = "Table 6",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-
-    )
 private val reservationItemList = listOf(
     Reservation(
         reservation_id = 0,
@@ -216,25 +166,57 @@ private fun SetNavbarColor(color : Color){
 }
 @Composable
 fun HomeScreen() {
+    // Mutable state for holding table items
+    var tablesItemLists by remember { mutableStateOf<List<Tables>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+
+    // Use LaunchedEffect to trigger the API call repeatedly every second
+    LaunchedEffect(Unit) {
+        while (true) {
+            try {
+                // Fetch data from the API
+                tablesItemLists = getAllTables()
+                isLoading = false
+                isError = false // Reset error if successful
+                Log.e("API repeater", "Successful")
+            } catch (e: Exception) {
+                isError = true
+                isLoading = false
+            }
+            delay(1000L) // Wait for 1 second before fetching again
+        }
+    }
+
     ModalNavigationDrawer(
         drawerContent = {
             ModalDrawerSheet {
                 Text("Drawer title", modifier = Modifier.padding(16.dp))
                 Divider()
-                for(item in navBarItemList) {
+                for (item in navBarItemList) {
                     NavigationDrawerItem(sideNavbar = item)
                 }
                 // ...other drawer items
             }
         }
     ) {
-        // Screen content
-        ThreeColumnLayout()
+        if (isLoading) {
+            // Show loading indicator
+            CircularProgressIndicator()
+        } else if (isError) {
+            // Show error message if something went wrong
+            Text("Error loading tables data")
+        } else if (tablesItemLists.isEmpty()) {
+            // Show empty state if no data is returned
+            Text("No tables available")
+        } else {
+            // Screen content
+            ThreeColumnLayout(tablesItemLists) // Use the list of tables when available
+        }
     }
-
 }
 @Composable
-fun ThreeColumnLayout() {
+fun ThreeColumnLayout(tablesItemLists: List<Tables>) {
     var selectedTableId by remember { mutableStateOf<Int?>(null) }
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -243,10 +225,10 @@ fun ThreeColumnLayout() {
                 .fillMaxHeight()
                 .padding(8.dp)
         ) {
-            ContentLeft(onTableClick = { tableId ->
-                // Tìm kiếm reservationId dựa trên tableId từ bảng trung gian
-                selectedTableId = tableId
-            }) // Nội dung phần 1 và 2
+            ContentLeft(onTableClick = {
+                tableId -> selectedTableId = tableId
+            },tablesItemLists
+            ) // Nội dung phần 1 và 2
         }
 
         // Phần 2: 1/3 bên phải
@@ -262,7 +244,7 @@ fun ThreeColumnLayout() {
     }
 }
 @Composable
-fun ContentLeft(onTableClick: (Int) -> Unit) {
+fun ContentLeft(onTableClick: (Int) -> Unit,tablesItemLists : List<Tables>) {
     var inputtime by remember { mutableStateOf("") }
     var reservationstate by remember { mutableStateOf(tablesItemLists.map { true }) }
     var selectedTableIds = remember { mutableStateListOf<Int?>() }
@@ -401,4 +383,15 @@ fun checkReservation (reservationList : List<Reservation>, inputTime : Date): Bo
         }
     }
     return true
+}
+
+suspend fun getAllTables(): List<Tables> {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.tableService.getAllTable()
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        emptyList()
+    }
 }
