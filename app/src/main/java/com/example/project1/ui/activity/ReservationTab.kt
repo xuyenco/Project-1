@@ -41,12 +41,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.project1.data.Reservation
 import com.example.project1.data.SideNavbar
 import com.example.project1.data.Tables
 import com.example.project1.data.Tables_Reservations
 import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.NavigationDrawerItem
+import com.example.project1.ui.section.PopupBox
 import com.example.project1.ui.section.TableItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -57,61 +61,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.jar.Attributes.Name
 
-private val navBarItemList = listOf(
-    SideNavbar(
-        title = "Home",
-        icon = Icons.Default.Home
-    ),
-    SideNavbar(
-        title = "Đặt bàn",
-        icon = Icons.Default.TableRestaurant
-    ),
-    SideNavbar(
-        title = "Đặt món",
-        icon = Icons.Default.Restaurant
-    )
-)
-private val reservationItemList = listOf(
-    Reservation(
-        reservation_id = 0,
-        name = "Nguyễn Văn A",
-        phone = "0909999999",
-        email = "a@a.com",
-        quantity = 4,
-        time = Date(),
-        created_at = Date(),
-        updated_at = Date()
-    ),Reservation(
-        reservation_id = 1,
-        name = "Nguyễn Văn B",
-        phone = "0909999999",
-        email = "a@a.com",
-        quantity = 4,
-        time = Date(),
-        created_at = Date(),
-        updated_at = Date()
-    ),Reservation(
-        reservation_id = 2,
-        name = "Nguyễn Văn C",
-        phone = "0909999999",
-        email = "a@a.com",
-        quantity = 4,
-        time = Date(),
-        created_at = Date(),
-        updated_at = Date()
-    ),Reservation(
-        reservation_id = 3,
-        name = "Nguyễn Văn D",
-        phone = "0909999999",
-        email = "a@a.com",
-        quantity = 4,
-        time = Date(),
-        created_at = Date(),
-        updated_at = Date()
-    ),
-)
-private val TablesReservationsItemLists = listOf(
+private val TablesReservationsLists = listOf(
     Tables_Reservations(
         tables_id = 0,
         reservations_id = 0,
@@ -139,85 +91,11 @@ private val TablesReservationsItemLists = listOf(
         updated_at = Date()
     )
 )
-class ReservationTab : ComponentActivity(){
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Project1Theme {
-                SetNavbarColor(color = MaterialTheme.colorScheme.background)
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    HomeScreen()
-                }
-
-            }
-        }
-    }
-}
 
 @Composable
-private fun SetNavbarColor(color : Color){
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        systemUiController.setStatusBarColor(color = color)
-    }
-}
-@Composable
-fun HomeScreen() {
-    // Mutable state for holding table items
-    var tablesItemLists by remember { mutableStateOf<List<Tables>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var isError by remember { mutableStateOf(false) }
-
-    // Use LaunchedEffect to trigger the API call repeatedly every second
-    LaunchedEffect(Unit) {
-        while (true) {
-            try {
-                // Fetch data from the API
-                tablesItemLists = getAllTables()
-                isLoading = false
-                isError = false // Reset error if successful
-                Log.e("API repeater", "Successful")
-            } catch (e: Exception) {
-                isError = true
-                isLoading = false
-            }
-            delay(1000L) // Wait for 1 second before fetching again
-        }
-    }
-
-    ModalNavigationDrawer(
-        drawerContent = {
-            ModalDrawerSheet {
-                Text("Drawer title", modifier = Modifier.padding(16.dp))
-                Divider()
-                for (item in navBarItemList) {
-                    NavigationDrawerItem(sideNavbar = item)
-                }
-                // ...other drawer items
-            }
-        }
-    ) {
-        if (isLoading) {
-            // Show loading indicator
-            CircularProgressIndicator()
-        } else if (isError) {
-            // Show error message if something went wrong
-            Text("Error loading tables data")
-        } else if (tablesItemLists.isEmpty()) {
-            // Show empty state if no data is returned
-            Text("No tables available")
-        } else {
-            // Screen content
-            ThreeColumnLayout(tablesItemLists) // Use the list of tables when available
-        }
-    }
-}
-@Composable
-fun ThreeColumnLayout(tablesItemLists: List<Tables>) {
+fun ReservationTabScreen(tablesLists: List<Tables>,reservationList: List<Reservation>) {
     var selectedTableId by remember { mutableStateOf<Int?>(null) }
+    var showPopup by remember { mutableStateOf(false) } // Trạng thái hiển thị popup
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -225,10 +103,12 @@ fun ThreeColumnLayout(tablesItemLists: List<Tables>) {
                 .fillMaxHeight()
                 .padding(8.dp)
         ) {
-            ContentLeft(onTableClick = {
-                tableId -> selectedTableId = tableId
-            },tablesItemLists
-            ) // Nội dung phần 1 và 2
+            ContentLeft(
+                onTableClick = {
+                    tableId -> selectedTableId = tableId },
+                tablesLists,
+                onShowPopup = { showPopup = true },
+                reservationList) // Nội dung phần 1 và 2
         }
 
         // Phần 2: 1/3 bên phải
@@ -238,20 +118,83 @@ fun ThreeColumnLayout(tablesItemLists: List<Tables>) {
                 .fillMaxHeight()
                 .padding(8.dp)
         ) {
-            ContentRight(selectedTableId) // Truyền selectedTableId vào ContentRight
+            ContentRight(selectedTableId,reservationList) // Truyền selectedTableId vào ContentRight
         }
+    }
+    PopupBox(
+        popupWidth = 500f, // Kích thước popup
+        popupHeight = 500f,
+        showPopup = showPopup,
+        onClickOutside = { showPopup = false } // Tắt popup khi click ra ngoài
+    ) {
+        // Nội dung bên trong popup
+        var name by remember { mutableStateOf("") }
+        var phone by remember { mutableStateOf("") }
+        var email by remember { mutableStateOf("") }
+        var quantity by remember { mutableStateOf("") }
 
+        Column(
+            modifier = Modifier
+                .padding(16.dp) // Padding cho toàn bộ cột bên trong popup
+        ) {
+            Text(
+                text = "Điền thông tin khách hàng",
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Họ tên khách
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                Text(text = "Họ tên khách đặt bàn:")
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                )
+            }
+
+            // Số điện thoại
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                Text(text = "Số điện thoại:")
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                )
+            }
+
+            // Email
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                Text(text = "Email:")
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                )
+            }
+
+            // Số lượng khách
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                Text(text = "Số lượng khách:")
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { quantity = it },
+                )
+            }
+            Row {
+                Button(onClick = { /*TODO*/ }) {
+                    Text(text = "Cancle")
+                }
+                Button(onClick = { /*TODO*/ }) {
+                    Text(text = "Submit")
+                }
+            }
+        }
     }
 }
+
 @Composable
-fun ContentLeft(onTableClick: (Int) -> Unit,tablesItemLists : List<Tables>) {
+fun ContentLeft(onTableClick: (Int) -> Unit, tablesLists: List<Tables>, onShowPopup : () -> Unit, reservationList: List<Reservation>) {
     var inputtime by remember { mutableStateOf("") }
-    var reservationstate by remember { mutableStateOf(tablesItemLists.map { true }) }
+    var reservationstate by remember { mutableStateOf(tablesLists.map { true }) }
     var selectedTableIds = remember { mutableStateListOf<Int?>() }
     val context = LocalContext.current
-
-    val date = getCurrentDateTime()
-    val dateInString = date.toString("yyyy/MM/dd HH:mm:ss")
 
     Column {
         Row {
@@ -265,16 +208,17 @@ fun ContentLeft(onTableClick: (Int) -> Unit,tablesItemLists : List<Tables>) {
                     .padding(8.dp)
                     .weight(4f)
             )
+
             Button(
                 onClick = {
                     selectedTableIds.clear()
                     val inputDate = inputtime.toDate("yyyy/MM/dd HH:mm:ss")
                     if (inputDate != null) {
-                        reservationstate = tablesItemLists.map { table ->
-                            val reservationsForTable = TablesReservationsItemLists
+                        reservationstate = tablesLists.map { table ->
+                            val reservationsForTable = TablesReservationsLists
                                 .filter { it.tables_id == table.tables_id }
                                 .mapNotNull { tableReservation ->
-                                    reservationItemList.find { it.reservation_id == tableReservation.reservations_id }
+                                    reservationList.find { it.reservations_id == tableReservation.reservations_id }
                                 }
                             checkReservation(reservationsForTable, inputDate)
                         }
@@ -291,7 +235,9 @@ fun ContentLeft(onTableClick: (Int) -> Unit,tablesItemLists : List<Tables>) {
             }
         }
 
-        Button(onClick = { /*TODO*/ },
+        // Button to trigger popup
+        Button(
+            onClick = { onShowPopup() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Đặt bàn")
@@ -302,21 +248,21 @@ fun ContentLeft(onTableClick: (Int) -> Unit,tablesItemLists : List<Tables>) {
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp)
         ) {
-            items(tablesItemLists.size) { index ->
+            items(tablesLists.size) { index ->
                 TableItem(
-                    tables = tablesItemLists[index],
-                    onClick = { onTableClick(tablesItemLists[index].tables_id) },
+                    tables = tablesLists[index],
+                    onClick = { onTableClick(tablesLists[index].tables_id) },
                     selectTable = {
                         if (reservationstate[index]) {
-                            if (selectedTableIds.contains(tablesItemLists[index].tables_id)) {
-                                selectedTableIds.remove(tablesItemLists[index].tables_id)
+                            if (selectedTableIds.contains(tablesLists[index].tables_id)) {
+                                selectedTableIds.remove(tablesLists[index].tables_id)
                             } else {
-                                selectedTableIds.add(tablesItemLists[index].tables_id)
+                                selectedTableIds.add(tablesLists[index].tables_id)
                             }
                         }
                     },
                     reservationState = reservationstate[index],
-                    isSelected = selectedTableIds.contains(tablesItemLists[index].tables_id)
+                    isSelected = selectedTableIds.contains(tablesLists[index].tables_id)
                 )
             }
         }
@@ -324,13 +270,13 @@ fun ContentLeft(onTableClick: (Int) -> Unit,tablesItemLists : List<Tables>) {
 }
 
 @Composable
-fun ContentRight(selectedTableId: Int?) {
+fun ContentRight(selectedTableId: Int?, reservationList: List<Reservation>) {
     if (selectedTableId != null) {
         // Lấy tất cả các reservation liên quan đến bàn đã chọn
-        val reservationsForTable = TablesReservationsItemLists
+        val reservationsForTable = TablesReservationsLists
             .filter { it.tables_id == selectedTableId }
             .mapNotNull { tableReservation ->
-                reservationItemList.find { it.reservation_id == tableReservation.reservations_id }
+                reservationList.find { it.reservations_id == tableReservation.reservations_id }
             }
 
         if (reservationsForTable.isNotEmpty()) {
@@ -372,23 +318,36 @@ fun checkReservation (reservationList : List<Reservation>, inputTime : Date): Bo
     val inputTimeEnd = inputTime.time + 2 * 60 * 60 * 100
     for (reservation in reservationList) {
         val reservation1Date = reservation.time
-        if (reservation1Date != null && reservation1Date.time < inputTime.time &&  inputTime.time < reservation1Date.time + 2 * 60 * 60 * 1000 ) {
+        if (reservation1Date.time < inputTime.time && inputTime.time < reservation1Date.time + 2 * 60 * 60 * 1000) {
             return false
         }
     }
     for (reservation in reservationList) {
         val reservation1Date = reservation.time
-        if (reservation1Date != null && reservation1Date.time < inputTimeEnd &&  inputTimeEnd <reservation1Date.time + 2 * 60 * 60 * 1000 ) {
+        if (reservation1Date.time < inputTimeEnd && inputTimeEnd <reservation1Date.time + 2 * 60 * 60 * 1000) {
             return false
         }
     }
     return true
 }
 
+// retrofit API
+// Get all tables
 suspend fun getAllTables(): List<Tables> {
     return try {
         withContext(Dispatchers.IO) {
             ApiClient.tableService.getAllTable()
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        emptyList()
+    }
+}
+// Get all reservations
+suspend fun getAllReservations(): List<Reservation> {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.reservationService.getAllReservation()
         }
     } catch (e: Exception) {
         Log.e("Api error", e.toString())

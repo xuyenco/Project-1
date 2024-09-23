@@ -11,10 +11,4 @@ import retrofit2.http.Path
 interface TableService {
     @GET("/api/table/getall")
     suspend fun getAllTable(): List<Tables>
-
-    @GET("/api/table/{id}")
-    suspend fun getTableById(@Path("id") id: Int): Tables
-
-    @DELETE
-    suspend fun deleteTable(@Path("id") id: Int): Tables
 }

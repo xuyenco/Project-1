@@ -1,8 +1,5 @@
 package com.example.project1.ui.activity
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -25,7 +22,7 @@ import com.example.project1.ui.section.OrderTabItem
 import com.example.project1.ui.theme.Project1Theme
 import java.util.Date
 
-private val tablesItemLists = listOf(
+private val tablesLists = listOf(
     Tables(
         tables_id = 0,
         name = "Table 1",
@@ -198,22 +195,6 @@ private val ItemsLists = listOf(
         updated_at = Date()
     ),
 )
-class OrderTab : ComponentActivity(){
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Project1Theme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    OrderTabScreen()
-                }
-            }
-        }
-    }
-}
 @Composable
 fun OrderTabScreen() {
     // Lưu trữ danh sách orders chưa hoàn thành
@@ -232,7 +213,7 @@ fun OrderTabScreen() {
                 val tablesForOrder = Orders_TablesList
                     .filter { it.orders_id == order.orders_id }
                     .mapNotNull { tableOrder ->
-                        tablesItemLists.find { it.tables_id == tableOrder.tables_id }
+                        tablesLists.find { it.tables_id == tableOrder.tables_id }
                     }
 
                 val dishesForOrder = Orders_ItemsList

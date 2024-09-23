@@ -4,7 +4,7 @@ import java.time.chrono.ChronoLocalDateTime
 import java.util.Date
 
 data class Reservation(
-    val reservation_id : Int,
+    val reservations_id : Int,
     val quantity : Int,
     val name : String,
     val phone: String,
