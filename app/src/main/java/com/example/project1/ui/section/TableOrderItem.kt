@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.project1.data.Menu
@@ -41,7 +40,7 @@ fun TableItem(tables: Tables, onClick: () -> Unit) {
                     .padding(5.dp)
                     .size(70.dp)
             )
-            Text(text = "Bàn số ${tables.tableNumber}")
+            Text(text = "${tables.name}")
         }
     }
 }
