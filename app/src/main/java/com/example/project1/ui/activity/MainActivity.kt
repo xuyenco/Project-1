@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.project1.data.Menu
 import com.example.project1.data.SideNavbar
-import com.example.project1.data.Table
+import com.example.project1.data.Tables
 import com.example.project1.ui.section.MenuItem
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -98,43 +98,43 @@ private val menuList = listOf(
 )
 
 private val tableItemList = listOf(
-    Table(
+    Tables(
         id = 0,
         tableNumber = 1,
         tableSeatNumber = 2,
         tablePosition = 2,
         tableStatus = true
-    ),Table(
+    ),Tables(
         id = 1,
         tableNumber = 2,
         tableSeatNumber = 2,
         tablePosition = 2,
         tableStatus = true
-    ),Table(
+    ),Tables(
         id = 2,
         tableNumber = 3,
         tableSeatNumber = 2,
         tablePosition = 2,
         tableStatus = true
-    ),Table(
+    ),Tables(
         id = 3,
         tableNumber = 4,
         tableSeatNumber = 2,
         tablePosition = 2,
         tableStatus = true
-    ),Table(
+    ),Tables(
         id = 4,
         tableNumber = 5,
         tableSeatNumber = 2,
         tablePosition = 2,
         tableStatus = true
-    ),Table(
+    ),Tables(
         id = 5,
         tableNumber = 6,
         tableSeatNumber = 2,
         tablePosition = 2,
         tableStatus = true
-    ),Table(
+    ),Tables(
         id = 5,
         tableNumber = 7,
         tableSeatNumber = 2,
@@ -162,7 +162,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ThreeColumnLayout() {
-    val (selectedTables, setSelectedTables) = remember { mutableStateOf<List<Table>>(emptyList()) }
+    val (selectedTables, setSelectedTables) = remember { mutableStateOf<List<Tables>>(emptyList()) }
     val (selectedMenus, setSelectedMenus) = remember { mutableStateOf<List<Menu>>(emptyList()) }
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -221,7 +221,7 @@ fun GridItem(
     )
 }
 @Composable
-fun ContentLeft(selectedTables: List<Table>,onTableItemClick: (Table) -> Unit,onMenuItemClick: (Menu) -> Unit) {
+fun ContentLeft(selectedTables: List<Tables>, onTableItemClick: (Tables) -> Unit, onMenuItemClick: (Menu) -> Unit) {
     val (items, setItems) = remember { mutableStateOf<List<Any>>(tableItemList) }
     Column(
         modifier = Modifier
@@ -234,7 +234,7 @@ fun ContentLeft(selectedTables: List<Table>,onTableItemClick: (Table) -> Unit,on
                 .weight(1f)
         ) { item ->
             when (item) {
-                is Table ->{
+                is Tables ->{
                     TableItem(item, onClick = { onTableItemClick(item) })
                 }
                 is Menu -> MenuItem(item, onClick ={ onMenuItemClick(item)})
@@ -270,7 +270,7 @@ fun ContentLeft(selectedTables: List<Table>,onTableItemClick: (Table) -> Unit,on
 }
 
 @Composable
-fun ContentRight(selectedTables: List<Table>, selectedMenus: List<Menu>, onRemoveMenuItem: (Menu) -> Unit) {
+fun ContentRight(selectedTables: List<Tables>, selectedMenus: List<Menu>, onRemoveMenuItem: (Menu) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

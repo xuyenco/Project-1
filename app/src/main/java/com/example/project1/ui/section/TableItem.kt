@@ -19,18 +19,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.project1.data.Menu
-import com.example.project1.data.Table
+import com.example.project1.data.Tables
 
 @Composable
-fun ItemBox(
-    modifier: Modifier = Modifier,
-    imageUrl: String? = null,
-    icon: ImageVector? = null,
-    title: String,
-    onClick: () -> Unit = {}
-) {
+fun TableItem(tables: Tables, onClick: () -> Unit) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .size(250.dp, 200.dp)
             .padding(10.dp)
             .border(width = 1.dp, color = Color.Black)
@@ -40,43 +34,39 @@ fun ItemBox(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (imageUrl != null) {
-                // Nếu có URL ảnh, dùng Coil để hiển thị ảnh
-                Image(
-                    painter = rememberAsyncImagePainter(model = imageUrl),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .size(70.dp)
-                )
-            } else if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = "",
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .size(70.dp)
-                )
-            }
-            Text(text = title)
+            Icon(
+                imageVector = Icons.Default.TableBar,
+                contentDescription = "Icon bàn",
+                modifier = Modifier
+                    .padding(5.dp)
+                    .size(70.dp)
+            )
+            Text(text = "Bàn số ${tables.tableNumber}")
         }
     }
 }
 
 @Composable
-fun TableItem(table: Table, onClick: () -> Unit) {
-    ItemBox(
-        icon = Icons.Default.TableBar,
-        title = "Bàn số ${table.tableNumber}",
-        onClick = onClick
-    )
-}
-
-@Composable
 fun MenuItem(menu: Menu, onClick: () -> Unit) {
-    ItemBox(
-        imageUrl = menu.imageUrl,
-        title = "${menu.itemName} \n ${menu.itemPrice} vnd",
-        onClick = onClick
-    )
+    Box(
+        modifier = Modifier
+            .size(250.dp, 200.dp)
+            .padding(10.dp)
+            .border(width = 1.dp, color = Color.Black)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(model = menu.imageUrl),
+                contentDescription = "Hình ảnh món ăn",
+                modifier = Modifier
+                    .padding(5.dp)
+                    .size(70.dp)
+            )
+            Text(text = "${menu.itemName} \n ${menu.itemPrice} vnd")
+        }
+    }
 }
