@@ -1,14 +1,9 @@
 package com.example.project1.ui.activity
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,64 +14,11 @@ import androidx.compose.ui.unit.dp
 import com.example.project1.data.Items
 import com.example.project1.data.Orders
 import com.example.project1.data.Orders_Items
-import com.example.project1.data.Tables
 import com.example.project1.data.Orders_Tables
+import com.example.project1.data.Tables
 import com.example.project1.ui.section.OrderTabItem
-import com.example.project1.ui.theme.Project1Theme
 import java.util.Date
 
-private val tablesItemLists = listOf(
-    Tables(
-        tables_id = 0,
-        name = "Table 1",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),Tables(
-        tables_id = 1,
-        name = "Table 2",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),Tables(
-        tables_id = 2,
-        name = "Table 3",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),Tables(
-        tables_id = 3,
-        name = "Table 4",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),Tables(
-        tables_id = 4,
-        name = "Table 5",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),Tables(
-        tables_id = 5,
-        name = "Table 6",
-        quantity = 4,
-        location = "Location 1",
-        status = "Empty",
-        create_at = Date(),
-        update_at = Date()
-    ),
-
-    )
 private val Orders_TablesList = listOf(
     Orders_Tables(
         orders_id = 0,
@@ -198,24 +140,8 @@ private val ItemsLists = listOf(
         updated_at = Date()
     ),
 )
-class OrderTab : ComponentActivity(){
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Project1Theme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    OrderTabScreen()
-                }
-            }
-        }
-    }
-}
 @Composable
-fun OrderTabScreen() {
+fun OrderTabScreen(tablesLists : List<Tables>) {
     // Lưu trữ danh sách orders chưa hoàn thành
     var orders by remember { mutableStateOf(OrdersLists.filter { !it.status }) }
     // Lưu trữ trạng thái checkbox cho từng order
@@ -232,7 +158,7 @@ fun OrderTabScreen() {
                 val tablesForOrder = Orders_TablesList
                     .filter { it.orders_id == order.orders_id }
                     .mapNotNull { tableOrder ->
-                        tablesItemLists.find { it.tables_id == tableOrder.tables_id }
+                        tablesLists.find { it.tables_id == tableOrder.tables_id }
                     }
 
                 val dishesForOrder = Orders_ItemsList
