@@ -44,6 +44,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.project1.data.Reservation
 import com.example.project1.data.SideNavbar
 import com.example.project1.data.Tables
+import com.example.project1.ui.activity.SubComposable.OrderLayout
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -56,6 +57,10 @@ private val navBarItemList = listOf(
         icon = Icons.Default.Home
     ),
     SideNavbar(
+        title = "Order Menu",
+        icon = Icons.Default.TableRestaurant
+    ),
+    SideNavbar(
         title = "Reservation Tab",
         icon = Icons.Default.TableRestaurant
     ),
@@ -63,6 +68,7 @@ private val navBarItemList = listOf(
         title = "Order Tab",
         icon = Icons.Default.Restaurant
     )
+
 )
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,6 +139,7 @@ fun HomeScreen() {
                                 "Order Tab" -> navController.navigate("order_tab")
                                 "Reservation Tab" -> navController.navigate("reservation_tab")
                                 "Home" -> navController.navigate("home")
+                                "Order Menu" -> navController.navigate("order_menu")
                             }
                         }
                     )
@@ -161,6 +168,9 @@ fun HomeScreen() {
                 }
                 composable("home") {
                     MainActivityScreen()
+                }
+                composable("order_menu") {
+                    OrderLayout()
                 }
             }// Use the list of tables when available
         }

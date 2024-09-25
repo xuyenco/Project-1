@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.project1.data.Menu
 import com.example.project1.data.Tables
 import com.example.project1.ui.section.MenuItem
-import com.example.project1.ui.section.TableItem
+import com.example.project1.ui.section.TableOrderItem
 import java.util.Date
 
 val menuList = listOf(
@@ -160,7 +160,7 @@ fun ContentLeft(selectedTables: List<Tables>, onTableItemClick: (Tables) -> Unit
         ) { item ->
             when (item) {
                 is Tables ->{
-                    TableItem(item, onClick = { onTableItemClick(item) })
+                    TableOrderItem(item, onClick = { onTableItemClick(item) })
                 }
                 is Menu -> MenuItem(item, onClick ={ onMenuItemClick(item)})
             }

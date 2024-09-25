@@ -21,7 +21,7 @@ import com.example.project1.data.Menu
 import com.example.project1.data.Tables
 
 @Composable
-fun TableItem(tables: Tables, onClick: () -> Unit) {
+fun TableOrderItem(tables: Tables, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(250.dp, 200.dp)
