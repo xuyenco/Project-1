@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.PopupBox
 import com.example.project1.ui.section.TableItem
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -70,7 +72,41 @@ private val TablesReservationsLists = listOf(
 )
 
 @Composable
-fun ReservationTabScreen(tablesLists: List<Tables>,reservationList: List<Reservation>) {
+fun ReservationTabScreen(){
+    var tablesLists by remember { mutableStateOf<List<Tables>>(emptyList()) }
+    var reservationList by remember { mutableStateOf<List<Reservation>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            try {
+                // Fetch data from the API
+                tablesLists = getAllTables()
+                reservationList = getAllReservations()
+                isLoading = false
+                isError = false // Reset error if successful
+//                Log.e("API repeater", "Successful")
+            } catch (e: Exception) {
+                isError = true
+                isLoading = false
+            }
+            delay(1000L) // Wait for 1 second before fetching again
+        }
+    }
+
+    if (isLoading) {
+        Text(text = "Đang tải dữ liệu...")
+    } else if (isError) {
+        Text(text = "Đang tải dữ liệu...")
+    } else {
+        ReservationTabContent(tablesLists,reservationList)
+    }
+
+}
+
+@Composable
+fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reservation>) {
     var selectedTableId by remember { mutableStateOf<Int?>(null) }
     var showPopup by remember { mutableStateOf(false) } // Trạng thái hiển thị popup
     Row(modifier = Modifier.fillMaxSize()) {
@@ -275,22 +311,8 @@ fun ContentRight(selectedTableId: Int?, reservationList: List<Reservation>) {
         Text(text = "Chọn bàn để xem thông tin đặt bàn.")
     }
 }
-fun Date.toString(format: String, locale: Locale = Locale.getDefault()): String {
-    val formatter = SimpleDateFormat(format, locale)
-    return formatter.format(this)
-}
-fun getCurrentDateTime(): Date {
-    return Calendar.getInstance().time
-}
-fun String.toDate(format: String, locale: Locale = Locale.getDefault()): Date? {
-    return try {
-        val formatter = SimpleDateFormat(format, locale)
-        formatter.parse(this)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
-}
+
+
 fun checkReservation (reservationList : List<Reservation>, inputTime : Date): Boolean {
     val inputTimeEnd = inputTime.time + 2 * 60 * 60 * 100
     for (reservation in reservationList) {
@@ -308,26 +330,3 @@ fun checkReservation (reservationList : List<Reservation>, inputTime : Date): Bo
     return true
 }
 
-// retrofit API
-// Get all tables
-suspend fun getAllTables(): List<Tables> {
-    return try {
-        withContext(Dispatchers.IO) {
-            ApiClient.tableService.getAllTable()
-        }
-    } catch (e: Exception) {
-        Log.e("Api error", e.toString())
-        emptyList()
-    }
-}
-// Get all reservations
-suspend fun getAllReservations(): List<Reservation> {
-    return try {
-        withContext(Dispatchers.IO) {
-            ApiClient.reservationService.getAllReservation()
-        }
-    } catch (e: Exception) {
-        Log.e("Api error", e.toString())
-        emptyList()
-    }
-}
