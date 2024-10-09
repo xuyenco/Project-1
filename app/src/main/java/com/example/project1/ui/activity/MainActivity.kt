@@ -44,6 +44,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.DataRequest.OrderRequest
 import com.example.project1.DataRequest.ReservationRequest
+import com.example.project1.DataResponse.OrderItemResponse
+import com.example.project1.DataResponse.OrderTableResponse
 import com.example.project1.data.Items
 import com.example.project1.data.Orders
 import com.example.project1.data.Reservation
@@ -137,7 +139,7 @@ fun HomeScreen() {
             }
         }
     ) {
-        NavHost(navController = navController, startDestination = "reservation_tab") {
+        NavHost(navController = navController, startDestination = "order_tab") {
             composable("order_tab") {
                 OrderTabScreenTest() // Màn hình OrderTab
             }
@@ -165,6 +167,19 @@ suspend fun getAllTables(): List<Tables> {
         emptyList()
     }
 }
+//get table by orderID
+suspend fun getTableByOrderId(orderId: Int): OrderTableResponse? {
+    return try{
+        withContext(Dispatchers.IO) {
+            ApiClient.orderTableService.getTableByOrderId(orderId)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+
 // Get all reservations
 suspend fun getAllReservations(): List<Reservation> {
     return try {
@@ -307,15 +322,16 @@ suspend fun getAllItems(): List<Items> {
         emptyList()
     }
 }
+
 //Get items by orderId
-suspend fun getItemByOrderId(orderId: Int): List<Items> {
+suspend fun getItemByOrderId(orderId: Int): OrderItemResponse? {
     return try {
         withContext(Dispatchers.IO) {
-            ApiClient.orderService.getItemByOrderId(orderId)
+            ApiClient.orderItemService.getItemByOrderId(orderId)
         }
     } catch (e: Exception) {
         Log.e("Api error", e.toString())
-        emptyList()
+        null
     }
 }
 

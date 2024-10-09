@@ -30,15 +30,4 @@ interface OrdersService {
     @DELETE("/api/order/{id}")
     suspend fun deleteOrder(@Path("id") id: Int) : String
 
-    //join ItemTable
-    @POST("api/order/joinitem/{OrderId}")
-    suspend fun createJoinItemTable(
-        @Path("OrderId") orderId: Int,
-        @Body orders_ItemsRequest: Orders_ItemsRequest)
-    : List<Orders_Items>
-    @GET("/api/order/joinitem/{OrderId}")
-    suspend fun getItemByOrderId(
-        @Path("OrderId") orderId: Int
-    ) : List<Items>
-
 }

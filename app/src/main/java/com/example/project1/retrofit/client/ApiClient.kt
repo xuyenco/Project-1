@@ -1,6 +1,8 @@
 package com.example.project1.retrofit.client
 
 import com.example.project1.retrofit.service.ItemService
+import com.example.project1.retrofit.service.OrderItemService
+import com.example.project1.retrofit.service.OrderTableService
 import com.example.project1.retrofit.service.OrdersService
 import com.example.project1.retrofit.service.ReservationService
 import com.example.project1.retrofit.service.TableService
@@ -30,5 +32,11 @@ object ApiClient {
     }
     val itemService : ItemService by lazy {
         RetrofitClient.retrofit.create(ItemService::class.java)
+    }
+    val orderItemService : OrderItemService by lazy {
+        RetrofitClient.retrofit.create(OrderItemService::class.java)
+    }
+    val orderTableService : OrderTableService by lazy {
+        RetrofitClient.retrofit.create(OrderTableService::class.java)
     }
 }

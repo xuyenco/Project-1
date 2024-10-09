@@ -14,14 +14,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.example.project1.data.Items
-import com.example.project1.data.Tables
+import com.example.project1.DataResponse.ItemsResponseForItemOrder
+import com.example.project1.DataResponse.TableResponseForOrderTable
 
 
 @Composable
 fun OrderTabItem(
-    itemsList: List<Items>,
-    tablesList: List<Tables>,
+    itemsList: List<ItemsResponseForItemOrder>,
+    tablesList: List<TableResponseForOrderTable>,
     checkedStates: List<Boolean>,
     onCheckedChange: (List<Boolean>) -> Unit,
     onOrderCompleted: () -> Unit
@@ -46,7 +46,7 @@ fun OrderTabItem(
             Column {
                 for (table in tablesList) {
                     Text(
-                        text = table.name,
+                        text = table.table_name,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
@@ -63,7 +63,7 @@ fun OrderTabItem(
                         val isChecked = checkedStates[index]
 
                         Text(
-                            text = dish.name,
+                            text = dish.item_name,
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(end = 8.dp)
