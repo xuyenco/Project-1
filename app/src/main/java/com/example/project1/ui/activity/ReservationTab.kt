@@ -2,6 +2,8 @@ package com.example.project1.ui.activity
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -28,14 +32,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
+import com.example.project1.DataRequest.ReservationRequest
 import com.example.project1.data.Reservation
 import com.example.project1.data.Tables
 import com.example.project1.data.Tables_Reservations
 import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.PopupBox
 import com.example.project1.ui.section.TableItem
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -44,7 +52,7 @@ import java.util.Locale
 
 private val TablesReservationsLists = listOf(
     Tables_Reservations(
-        tables_id = 0,
+        tables_id = 1,
         reservations_id = 0,
         created_at = Date(),
         updated_at = Date()
@@ -54,7 +62,7 @@ private val TablesReservationsLists = listOf(
         created_at = Date(),
         updated_at = Date()
     ), Tables_Reservations(
-        tables_id = 2,
+        tables_id = 1,
         reservations_id = 2,
         created_at = Date(),
         updated_at = Date()
@@ -78,6 +86,8 @@ fun ReservationTabScreen(){
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
 
+    //new dat
+
     LaunchedEffect(Unit) {
         while (true) {
             try {
@@ -86,12 +96,11 @@ fun ReservationTabScreen(){
                 reservationList = getAllReservations()
                 isLoading = false
                 isError = false // Reset error if successful
-//                Log.e("API repeater", "Successful")
             } catch (e: Exception) {
                 isError = true
                 isLoading = false
             }
-            delay(1000L) // Wait for 1 second before fetching again
+            delay(20000L) // Wait for 1 second before fetching again
         }
     }
 
@@ -108,7 +117,12 @@ fun ReservationTabScreen(){
 @Composable
 fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reservation>) {
     var selectedTableId by remember { mutableStateOf<Int?>(null) }
+    var inputTime by remember { mutableStateOf("") }
     var showPopup by remember { mutableStateOf(false) } // Trạng thái hiển thị popup
+    var selectedReservation by remember { mutableStateOf<Reservation?>(null)} // Lưu thông tin reservation đợc chọn
+
+    inputTime = getCurrentDateTime().toString("yyyy/MM/dd HH:mm:ss")
+
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -121,7 +135,9 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
                     tableId -> selectedTableId = tableId },
                 tablesLists,
                 onShowPopup = { showPopup = true },
-                reservationList) // Nội dung phần 1 và 2
+                reservationList,
+                inputTime = inputTime,
+                onInputTimeChange = { it -> inputTime = it })
         }
 
         // Phần 2: 1/3 bên phải
@@ -131,89 +147,122 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
                 .fillMaxHeight()
                 .padding(8.dp)
         ) {
-            ContentRight(selectedTableId,reservationList) // Truyền selectedTableId vào ContentRight
+            ContentRight(
+
+                selectedTableId,// Truyền selectedTableId vào ContentRight
+                reservationList,
+                onEditClick = {
+                    reservation -> selectedReservation = reservation // Update the selected reservation
+                    showPopup = true // Show the popup
+                },
+                onDeleteClick = {
+                    reservation -> selectedReservation = reservation
+                    val id = selectedReservation!!.reservations_id
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            var result = ApiClient.reservationService.deleteReservation(id)
+                            reservationList.filter{it != selectedReservation}
+
+                        } catch (e: Exception) {
+                            Log.e("Reservation", "Error: ${e.message}")
+                        }
+                    }
+
+                }
+            )
         }
     }
-    PopupBox(
-        popupWidth = 500f, // Kích thước popup
-        popupHeight = 500f,
-        showPopup = showPopup,
-        onClickOutside = { showPopup = false } // Tắt popup khi click ra ngoài
-    ) {
-        // Nội dung bên trong popup
-        var name by remember { mutableStateOf("") }
-        var phone by remember { mutableStateOf("") }
-        var email by remember { mutableStateOf("") }
-        var quantity by remember { mutableStateOf("") }
-
-        Column(
-            modifier = Modifier
-                .padding(16.dp) // Padding cho toàn bộ cột bên trong popup
+    if (showPopup) {
+        PopupBox(
+            popupWidth = 500f,
+            popupHeight = 500f,
+            showPopup = showPopup,
+            onClickOutside = { showPopup = false }
         ) {
-            Text(
-                text = "Điền thông tin khách hàng",
-                modifier = Modifier.padding(bottom = 16.dp)
+            ReservationForm(
+                reservation = selectedReservation,
+                inputTime = inputTime,
+                onSubmit = { reservationRequest ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            if (selectedReservation == null) {
+                                // Tạo mới
+                                ApiClient.reservationService.createReservation(reservationRequest)
+                            } else {
+//                             Cập nhật
+                                ApiClient.reservationService.editReservation(
+                                    reservationRequest,selectedReservation!!.reservations_id
+                                )
+                            }
+                            withContext(Dispatchers.Main) { showPopup = false }
+                        } catch (e: Exception) {
+                            Log.e("Reservation", "Error: ${e.message}")
+                        }
+                    }
+                }
             )
-
-            // Họ tên khách
-            Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                Text(text = "Họ tên khách đặt bàn:")
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                )
-            }
-
-            // Số điện thoại
-            Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                Text(text = "Số điện thoại:")
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                )
-            }
-
-            // Email
-            Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                Text(text = "Email:")
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                )
-            }
-
-            // Số lượng khách
-            Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                Text(text = "Số lượng khách:")
-                OutlinedTextField(
-                    value = quantity,
-                    onValueChange = { quantity = it },
-                )
-            }
-            Row {
-                Button(onClick = { /*TODO*/ }) {
-                    Text(text = "Cancle")
-                }
-                Button(onClick = { /*TODO*/ }) {
-                    Text(text = "Submit")
-                }
-            }
         }
     }
 }
 
 @Composable
-fun ContentLeft(onTableClick: (Int) -> Unit, tablesLists: List<Tables>, onShowPopup : () -> Unit, reservationList: List<Reservation>) {
-    var inputtime by remember { mutableStateOf("") }
+fun ReservationForm(
+    reservation: Reservation?,
+    inputTime: String,
+    onSubmit: (ReservationRequest) -> Unit
+) {
+    var name by remember { mutableStateOf(reservation?.name ?: "") }
+    var phone by remember { mutableStateOf(reservation?.phone ?: "") }
+    var email by remember { mutableStateOf(reservation?.email ?: "") }
+    var quantity by remember { mutableStateOf(reservation?.quantity?.toString() ?: "") }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(text = if (reservation != null) "Edit Reservation" else "New Reservation", modifier = Modifier.padding(bottom = 16.dp))
+
+        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
+        OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") })
+        OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
+        OutlinedTextField(value = quantity, onValueChange = { quantity = it }, label = { Text("Quantity") })
+
+        Button(onClick = {
+            val parsedTime = inputTime.toDate("yyyy/MM/dd HH:mm:ss")
+            if (parsedTime != null) {
+                val reservationRequest = ReservationRequest(
+                    quantity = quantity.toInt(),
+                    name = name,
+                    phone = phone,
+                    email = email,
+                    time = parsedTime
+                )
+                onSubmit(reservationRequest)
+            } else {
+                Log.e("Reservation", "Invalid date format")
+            }
+        }) {
+            Text(if (reservation != null) "Save Changes" else "Submit")
+        }
+    }
+}
+
+@Composable
+fun ContentLeft(
+    onTableClick: (Int) -> Unit,
+    tablesLists: List<Tables>,
+    onShowPopup : () -> Unit,
+    reservationList: List<Reservation>,
+    inputTime : String,
+    onInputTimeChange :(String) -> Unit)
+{
     var reservationstate by remember { mutableStateOf(tablesLists.map { true }) }
     var selectedTableIds = remember { mutableStateListOf<Int?>() }
     val context = LocalContext.current
 
+
     Column {
         Row {
             OutlinedTextField(
-                value = inputtime,
-                onValueChange = { inputtime = it },
+                value = inputTime,
+                onValueChange = { it -> onInputTimeChange(it) },
                 label = { Text(text = "Time") },
                 leadingIcon = { Icon(imageVector = Icons.Default.Timer, contentDescription = "Time Icon") },
                 modifier = Modifier
@@ -225,7 +274,7 @@ fun ContentLeft(onTableClick: (Int) -> Unit, tablesLists: List<Tables>, onShowPo
             Button(
                 onClick = {
                     selectedTableIds.clear()
-                    val inputDate = inputtime.toDate("yyyy/MM/dd HH:mm:ss")
+                    val inputDate = inputTime.toDate("yyyy/MM/dd HH:mm:ss")
                     if (inputDate != null) {
                         reservationstate = tablesLists.map { table ->
                             val reservationsForTable = TablesReservationsLists
@@ -283,7 +332,9 @@ fun ContentLeft(onTableClick: (Int) -> Unit, tablesLists: List<Tables>, onShowPo
 }
 
 @Composable
-fun ContentRight(selectedTableId: Int?, reservationList: List<Reservation>) {
+fun ContentRight(
+    selectedTableId: Int?, reservationList: List<Reservation>,onEditClick: (Reservation) -> Unit,onDeleteClick: (Reservation) -> Unit) {
+
     if (selectedTableId != null) {
         // Lấy tất cả các reservation liên quan đến bàn đã chọn
         val reservationsForTable = TablesReservationsLists
@@ -296,11 +347,11 @@ fun ContentRight(selectedTableId: Int?, reservationList: List<Reservation>) {
             Column {
                 Text(text = "Danh sách đặt bàn cho bàn số ${selectedTableId + 1}:")
                 reservationsForTable.forEach { reservation ->
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Text(text = "Tên: ${reservation.name}")
-                        Text(text = "Số điện thoại: ${reservation.phone}")
-                        Text(text = "Thời gian: ${reservation.time.toString("yyyy/MM/dd HH:mm:ss")}")
-                    }
+                    ReservationItem(
+                        reservation = reservation,
+                        onEditClick =  { onEditClick(reservation) },
+                        onDeleteClick = { onDeleteClick(reservation) }
+                    )
                     Divider()
                 }
             }
@@ -309,6 +360,46 @@ fun ContentRight(selectedTableId: Int?, reservationList: List<Reservation>) {
         }
     } else {
         Text(text = "Chọn bàn để xem thông tin đặt bàn.")
+    }
+}
+
+@Composable
+fun ReservationItem(reservation: Reservation, onEditClick: () -> Unit, onDeleteClick: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }  // State để theo dõi menu có đang mở hay không
+
+    Box {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }  // Mở menu khi nhấn vào Box
+                .padding(8.dp)
+        ) {
+            Column {
+                Text(text = "Tên: ${reservation.name}")
+                Text(text = "Số điện thoại: ${reservation.phone}")
+                Text(text = "Thời gian: ${reservation.time.toString("yyyy/MM/dd HH:mm:ss")}")
+            }
+        }
+
+        // DropdownMenu xuất hiện khi expanded = true
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }  // Đóng menu khi nhấn ra ngoài
+        ) {
+            DropdownMenuItem(
+                text = { Text(text = "Sửa") },
+                onClick = {
+                    expanded = false
+                    onEditClick() // Sẽ hiện lên popupbox để chỉnh sửa thông tin khách hàng
+                })
+
+            DropdownMenuItem(
+                text = { Text(text = "Xóa") },
+                onClick = {
+                    expanded = false
+                    onDeleteClick()
+                })
+        }
     }
 }
 

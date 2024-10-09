@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.project1.DataRequest.OrderRequest
+import com.example.project1.DataRequest.ReservationRequest
 import com.example.project1.data.Items
 import com.example.project1.data.Orders
 import com.example.project1.data.Reservation
@@ -135,9 +137,9 @@ fun HomeScreen() {
             }
         }
     ) {
-        NavHost(navController = navController, startDestination = "home") {
+        NavHost(navController = navController, startDestination = "reservation_tab") {
             composable("order_tab") {
-                OrderTabScreen() // Màn hình OrderTab
+                OrderTabScreenTest() // Màn hình OrderTab
             }
             composable("reservation_tab") {
                 ReservationTabScreen() // Màn hình ReservationTab
@@ -174,6 +176,65 @@ suspend fun getAllReservations(): List<Reservation> {
         emptyList()
     }
 }
+// Get reservation by ID
+suspend fun getReservationById(id: Int): Reservation? {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.reservationService.getReservationById(id)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+// Get reservation by table ID
+suspend fun getReservationByTableId(reservationId: Int): List<Tables> {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.tableService.getTableByReservationId(reservationId)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        emptyList()
+    }
+}
+
+// Create a new reservation
+suspend fun createReservation(reservation: ReservationRequest): Reservation? {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.reservationService.createReservation(reservation)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+// Edit an existing reservation by ID
+suspend fun editReservation(id: Int, reservation: ReservationRequest): Reservation? {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.reservationService.editReservation(reservation, id)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+// Delete a reservation by ID
+suspend fun deleteReservation(id: Int): String {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.reservationService.deleteReservation(id)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        "Failed to delete reservation"
+    }
+}
 
 //Get all orders
 suspend fun getAllOrders(): List<Orders> {
@@ -184,6 +245,54 @@ suspend fun getAllOrders(): List<Orders> {
     } catch (e: Exception) {
         Log.e("Api error", e.toString())
         emptyList()
+    }
+}
+
+//Get order by id
+suspend fun getOrderById(id: Int): Orders? {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.orderService.getOrderById(id)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+// Create a new order
+suspend fun createOrder(order: OrderRequest): Orders? {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.orderService.createOrder(order)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+// Edit an existing order by ID
+suspend fun editOrder(id: Int, order: OrderRequest): Orders? {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.orderService.editOrder(order, id)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+// Delete an order by ID
+suspend fun deleteOrder(id: Int): String {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.orderService.deleteOrder(id)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        "Failed to delete order"
     }
 }
 
@@ -198,6 +307,18 @@ suspend fun getAllItems(): List<Items> {
         emptyList()
     }
 }
+//Get items by orderId
+suspend fun getItemByOrderId(orderId: Int): List<Items> {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.orderService.getItemByOrderId(orderId)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        emptyList()
+    }
+}
+
 fun getCurrentDateTime(): Date {
     return Calendar.getInstance().time
 }

@@ -18,7 +18,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 @Composable
-fun PopupBox(popupWidth: Float, popupHeight: Float, showPopup: Boolean, onClickOutside: () -> Unit, content: @Composable () -> Unit) {
+fun PopupBox( popupWidth: Float, popupHeight: Float, showPopup: Boolean, onClickOutside: () -> Unit, content: @Composable () -> Unit) {
     if (showPopup) {
         // Full screen background with semi-transparent overlay
         Box(
@@ -32,7 +32,8 @@ fun PopupBox(popupWidth: Float, popupHeight: Float, showPopup: Boolean, onClickO
             Popup(
                 alignment = Alignment.Center,
                 properties = PopupProperties(
-                    excludeFromSystemGesture = true
+                    excludeFromSystemGesture = true,
+                    focusable = true
                 ),
                 onDismissRequest = { onClickOutside() } // Dismiss on clicking outside
             ) {
