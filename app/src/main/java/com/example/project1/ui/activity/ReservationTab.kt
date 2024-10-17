@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,14 +30,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupProperties
 import com.example.project1.DataRequest.ReservationRequest
+import com.example.project1.DataRequest.Tables_ReservationRequest
 import com.example.project1.data.Reservation
 import com.example.project1.data.Tables
-import com.example.project1.data.Tables_Reservations
 import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.PopupBox
 import com.example.project1.ui.section.TableItem
@@ -45,83 +46,82 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
-import java.util.Locale
-
-private val TablesReservationsLists = listOf(
-    Tables_Reservations(
-        tables_id = 1,
-        reservations_id = 0,
-        created_at = Date(),
-        updated_at = Date()
-    ), Tables_Reservations(
-        tables_id = 1,
-        reservations_id = 1,
-        created_at = Date(),
-        updated_at = Date()
-    ), Tables_Reservations(
-        tables_id = 1,
-        reservations_id = 2,
-        created_at = Date(),
-        updated_at = Date()
-    ), Tables_Reservations(
-        tables_id = 3,
-        reservations_id = 3,
-        created_at = Date(),
-        updated_at = Date()
-    ), Tables_Reservations(
-        tables_id = 4,
-        reservations_id = 4,
-        created_at = Date(),
-        updated_at = Date()
-    )
-)
 
 @Composable
 fun ReservationTabScreen(){
-    var tablesLists by remember { mutableStateOf<List<Tables>>(emptyList()) }
-    var reservationList by remember { mutableStateOf<List<Reservation>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    var isFirstLoading by remember { mutableStateOf(true) } // Chỉ true lần đầu load dữ liệu
+    var isRefreshing by remember { mutableStateOf(false) }  // Trạng thái khi refresh
     var isError by remember { mutableStateOf(false) }
 
-    //new dat
+    var tablesLists by remember { mutableStateOf<List<Tables>>(emptyList()) }
+    var tableReservationsList by remember { mutableStateOf(mutableMapOf<Tables, MutableList<Reservation>>())}
+
+    var inputTime by remember { mutableStateOf("") }
+
 
     LaunchedEffect(Unit) {
         while (true) {
             try {
+                if (isFirstLoading) isFirstLoading = true
+                isError = false
+                isRefreshing = true
+
                 // Fetch data from the API
                 tablesLists = getAllTables()
-                reservationList = getAllReservations()
-                isLoading = false
-                isError = false // Reset error if successful
+                for (table in tablesLists) {
+                    val reservationsResponse = getReservationByTableId(table.tables_id)
+                    if (reservationsResponse != null && reservationsResponse.reservations.isNotEmpty()) {
+                        tableReservationsList[table] = reservationsResponse.reservations.toMutableList()
+                    }
+                }
+                if (isFirstLoading) isFirstLoading = false
+                isRefreshing = false
             } catch (e: Exception) {
                 isError = true
-                isLoading = false
+                isRefreshing = false
+                if (isFirstLoading) isFirstLoading = false
             }
-            delay(20000L) // Wait for 1 second before fetching again
+            delay(1000L) // Wait for 1 second before fetching again
         }
     }
 
-    if (isLoading) {
-        Text(text = "Đang tải dữ liệu...")
-    } else if (isError) {
-        Text(text = "Đang tải dữ liệu...")
-    } else {
-        ReservationTabContent(tablesLists,reservationList)
+    when {
+        isFirstLoading -> {
+            CircularProgressIndicator()
+            inputTime = getCurrentDateTime().toString("yyyy/MM/dd HH:mm:ss")
+        }
+        isError -> {
+            Text(text = "Something went wrong! Please try again later.")
+        }
+        tablesLists.isEmpty() || tableReservationsList.isEmpty()  -> {
+            Text("No Data available")
+        }
+        else -> {
+            ReservationTabContent(
+                tablesLists,
+                tableReservationsList,
+                inputTime,
+                onInputTimeChange = { inputTime = it })
+
+        }
     }
 
 }
 
 @Composable
-fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reservation>) {
+fun ReservationTabContent(
+    tablesLists: List<Tables>,
+    tableReservationsList : MutableMap<Tables, MutableList<Reservation>>,
+    inputTime: String,
+    onInputTimeChange :(String) -> Unit)
+{
     var selectedTableId by remember { mutableStateOf<Int?>(null) }
-    var inputTime by remember { mutableStateOf("") }
     var showPopup by remember { mutableStateOf(false) } // Trạng thái hiển thị popup
     var selectedReservation by remember { mutableStateOf<Reservation?>(null)} // Lưu thông tin reservation đợc chọn
+    var selectedTableIds = remember { mutableStateListOf<Int?>() }
+    val context = LocalContext.current
 
-    inputTime = getCurrentDateTime().toString("yyyy/MM/dd HH:mm:ss")
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -135,9 +135,11 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
                     tableId -> selectedTableId = tableId },
                 tablesLists,
                 onShowPopup = { showPopup = true },
-                reservationList,
+                tableReservationsList,
                 inputTime = inputTime,
-                onInputTimeChange = { it -> inputTime = it })
+                onInputTimeChange = onInputTimeChange,
+                selectedTableIds)
+
         }
 
         // Phần 2: 1/3 bên phải
@@ -150,7 +152,7 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
             ContentRight(
 
                 selectedTableId,// Truyền selectedTableId vào ContentRight
-                reservationList,
+                tableReservationsList,
                 onEditClick = {
                     reservation -> selectedReservation = reservation // Update the selected reservation
                     showPopup = true // Show the popup
@@ -160,15 +162,32 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
                     val id = selectedReservation!!.reservations_id
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            var result = ApiClient.reservationService.deleteReservation(id)
-                            reservationList.filter{it != selectedReservation}
+                            var tablesByReservationId = ApiClient.tableReservationsService.getTablesByReservationId(id)
+                            Log.e("TableByReservationID", tablesByReservationId.toString())
+                            if (tablesByReservationId.tables.isNotEmpty()){
+                                for (table in tablesByReservationId.tables){
+                                    val tableReservation = Tables_ReservationRequest(
+                                        reservations_id = id,   // Đảm bảo id là id của reservation
+                                        tables_id = table.tables_id // Đảm bảo table.tables_id là id của bàn
+                                    )
+                                    tableReservationsList.keys.filter { it.tables_id == table.tables_id }.forEach {
+                                        tableReservationsList[it]!!.remove(selectedReservation) }
+
+                                    deleteTableReservation(tableReservation)
+                                }
+                            }
+                            else{
+                                Log.e("Error at get Table","Shit go wrong")
+                            }
+                            ApiClient.reservationService.deleteReservation(id)
+
 
                         } catch (e: Exception) {
-                            Log.e("Reservation", "Error: ${e.message}")
+                            Log.e("Reservation", "Error: I have no Ideal ${e.message}")
                         }
                     }
-
                 }
+
             )
         }
     }
@@ -182,12 +201,31 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
             ReservationForm(
                 reservation = selectedReservation,
                 inputTime = inputTime,
-                onSubmit = { reservationRequest ->
+                onSubmit = {
+                    reservationRequest ->
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             if (selectedReservation == null) {
                                 // Tạo mới
-                                ApiClient.reservationService.createReservation(reservationRequest)
+                                if (selectedTableIds != null){
+                                    val reservation = ApiClient.reservationService.createReservation(reservationRequest)
+                                    for(id in selectedTableIds.filterNotNull() ){
+                                        val tableReservation = Tables_ReservationRequest(
+                                            reservations_id = reservation.reservations_id,
+                                            tables_id = id
+                                        )
+                                        val response = ApiClient.tableReservationsService.addTableReservation(tableReservation)
+                                    }
+
+                                }
+                                else{
+                                    showPopup = false
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(context, "Please select table", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+
                             } else {
 //                             Cập nhật
                                 ApiClient.reservationService.editReservation(
@@ -199,7 +237,8 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
                             Log.e("Reservation", "Error: ${e.message}")
                         }
                     }
-                }
+                },
+                selectedTableIds
             )
         }
     }
@@ -209,20 +248,36 @@ fun ReservationTabContent(tablesLists: List<Tables>,reservationList: List<Reserv
 fun ReservationForm(
     reservation: Reservation?,
     inputTime: String,
-    onSubmit: (ReservationRequest) -> Unit
+    onSubmit: (ReservationRequest) -> Unit,
+    selectedTableIds: SnapshotStateList<Int?> // Bàn đã chọn
 ) {
     var name by remember { mutableStateOf(reservation?.name ?: "") }
     var phone by remember { mutableStateOf(reservation?.phone ?: "") }
     var email by remember { mutableStateOf(reservation?.email ?: "") }
     var quantity by remember { mutableStateOf(reservation?.quantity?.toString() ?: "") }
 
+    // Chuyển các tableId thành chuỗi để hiển thị
+    val selectedTablesText = selectedTableIds.filterNotNull().joinToString(", ") { "Table $it" }
+
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = if (reservation != null) "Edit Reservation" else "New Reservation", modifier = Modifier.padding(bottom = 16.dp))
+        Text(
+            text = if (reservation != null) "Edit Reservation" else "New Reservation",
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
         OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") })
         OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
         OutlinedTextField(value = quantity, onValueChange = { quantity = it }, label = { Text("Quantity") })
+
+        // Hiển thị danh sách selectedTableIds, không cho phép chỉnh sửa
+        OutlinedTextField(
+            value = selectedTablesText,
+            onValueChange = {},
+            label = { Text("Selected Tables") },
+            enabled = false, // Không cho phép chỉnh sửa
+            readOnly = true
+        )
 
         Button(onClick = {
             val parsedTime = inputTime.toDate("yyyy/MM/dd HH:mm:ss")
@@ -232,7 +287,8 @@ fun ReservationForm(
                     name = name,
                     phone = phone,
                     email = email,
-                    time = parsedTime
+                    time = parsedTime,
+                    status = "Pending",
                 )
                 onSubmit(reservationRequest)
             } else {
@@ -249,12 +305,13 @@ fun ContentLeft(
     onTableClick: (Int) -> Unit,
     tablesLists: List<Tables>,
     onShowPopup : () -> Unit,
-    reservationList: List<Reservation>,
+    tableReservationsList : MutableMap<Tables, MutableList<Reservation>>,
     inputTime : String,
-    onInputTimeChange :(String) -> Unit)
+    onInputTimeChange :(String) -> Unit,
+    selectedTableIds : SnapshotStateList<Int?>
+)
 {
     var reservationstate by remember { mutableStateOf(tablesLists.map { true }) }
-    var selectedTableIds = remember { mutableStateListOf<Int?>() }
     val context = LocalContext.current
 
 
@@ -262,7 +319,7 @@ fun ContentLeft(
         Row {
             OutlinedTextField(
                 value = inputTime,
-                onValueChange = { it -> onInputTimeChange(it) },
+                onValueChange = { onInputTimeChange(it) },
                 label = { Text(text = "Time") },
                 leadingIcon = { Icon(imageVector = Icons.Default.Timer, contentDescription = "Time Icon") },
                 modifier = Modifier
@@ -277,11 +334,7 @@ fun ContentLeft(
                     val inputDate = inputTime.toDate("yyyy/MM/dd HH:mm:ss")
                     if (inputDate != null) {
                         reservationstate = tablesLists.map { table ->
-                            val reservationsForTable = TablesReservationsLists
-                                .filter { it.tables_id == table.tables_id }
-                                .mapNotNull { tableReservation ->
-                                    reservationList.find { it.reservations_id == tableReservation.reservations_id }
-                                }
+                            val reservationsForTable = tableReservationsList[table]
                             checkReservation(reservationsForTable, inputDate)
                         }
                     } else {
@@ -293,7 +346,7 @@ fun ContentLeft(
                     .padding(8.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Submit")
+                Text(text = "Tìm kiếm")
             }
         }
 
@@ -333,17 +386,18 @@ fun ContentLeft(
 
 @Composable
 fun ContentRight(
-    selectedTableId: Int?, reservationList: List<Reservation>,onEditClick: (Reservation) -> Unit,onDeleteClick: (Reservation) -> Unit) {
+    selectedTableId: Int?,
+    tableReservationsList : MutableMap<Tables, MutableList<Reservation>>,
+    onEditClick: (Reservation) -> Unit,
+    onDeleteClick: (Reservation) -> Unit) {
 
     if (selectedTableId != null) {
-        // Lấy tất cả các reservation liên quan đến bàn đã chọn
-        val reservationsForTable = TablesReservationsLists
-            .filter { it.tables_id == selectedTableId }
-            .mapNotNull { tableReservation ->
-                reservationList.find { it.reservations_id == tableReservation.reservations_id }
-            }
 
-        if (reservationsForTable.isNotEmpty()) {
+        // Lấy tất cả các reservation liên quan đến bàn đã chọn
+        val reservationsForTable = tableReservationsList.entries.find { it.key.tables_id == selectedTableId }?.value
+
+
+        if (reservationsForTable != null) {
             Column {
                 Text(text = "Danh sách đặt bàn cho bàn số ${selectedTableId + 1}:")
                 reservationsForTable.forEach { reservation ->
@@ -364,7 +418,11 @@ fun ContentRight(
 }
 
 @Composable
-fun ReservationItem(reservation: Reservation, onEditClick: () -> Unit, onDeleteClick: () -> Unit) {
+fun ReservationItem(
+    reservation : Reservation,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit)
+{
     var expanded by remember { mutableStateOf(false) }  // State để theo dõi menu có đang mở hay không
 
     Box {
@@ -404,19 +462,25 @@ fun ReservationItem(reservation: Reservation, onEditClick: () -> Unit, onDeleteC
 }
 
 
-fun checkReservation (reservationList : List<Reservation>, inputTime : Date): Boolean {
+fun checkReservation (
+    reservationResponseForTableReservation : MutableList<Reservation>?,
+    inputTime : Date): Boolean
+{
     val inputTimeEnd = inputTime.time + 2 * 60 * 60 * 100
-    for (reservation in reservationList) {
-        val reservation1Date = reservation.time
-        if (reservation1Date.time < inputTime.time && inputTime.time < reservation1Date.time + 2 * 60 * 60 * 1000) {
-            return false
+    if (reservationResponseForTableReservation != null){
+        for (reservation in reservationResponseForTableReservation) {
+            val reservation1Date = reservation.time
+            if (reservation1Date.time < inputTime.time && inputTime.time < reservation1Date.time + 2 * 60 * 60 * 1000) {
+                return false
+            }
         }
-    }
-    for (reservation in reservationList) {
-        val reservation1Date = reservation.time
-        if (reservation1Date.time < inputTimeEnd && inputTimeEnd <reservation1Date.time + 2 * 60 * 60 * 1000) {
-            return false
+        for (reservation in reservationResponseForTableReservation) {
+            val reservation1Date = reservation.time
+            if (reservation1Date.time < inputTimeEnd && inputTimeEnd <reservation1Date.time + 2 * 60 * 60 * 1000) {
+                return false
+            }
         }
+        return true
     }
     return true
 }

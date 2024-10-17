@@ -54,8 +54,8 @@ val tableItemList = listOf(
         quantity = 4,
         location = "First Floor",
         status = "Available",
-        create_at = Date(),
-        update_at = Date()
+        created_at = Date(),
+        updated_at = Date()
     ),
     Tables(
         tables_id = 2,
@@ -63,8 +63,8 @@ val tableItemList = listOf(
         quantity = 6,
         location = "Second Floor",
         status = "Occupied",
-        create_at = Date(),
-        update_at = Date()
+        created_at = Date(),
+        updated_at = Date()
     ),
     Tables(
         tables_id = 3,
@@ -72,8 +72,8 @@ val tableItemList = listOf(
         quantity = 2,
         location = "First Floor",
         status = "Available",
-        create_at = Date(),
-        update_at = Date()
+        created_at = Date(),
+        updated_at = Date()
     ),
     Tables(
         tables_id = 4,
@@ -81,8 +81,8 @@ val tableItemList = listOf(
         quantity = 8,
         location = "Patio",
         status = "Reserved",
-        create_at = Date(),
-        update_at = Date()
+        created_at = Date(),
+        updated_at = Date()
     )
 )
 @Composable

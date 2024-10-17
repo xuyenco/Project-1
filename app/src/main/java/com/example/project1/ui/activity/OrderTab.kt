@@ -1,5 +1,6 @@
 package com.example.project1.ui.activity
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,8 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.project1.DataRequest.OrderRequest
-import com.example.project1.DataResponse.ItemsResponseForItemOrder
-import com.example.project1.DataResponse.TableResponseForOrderTable
+import com.example.project1.DataResponse.ItemsResponseForItemByOrder
 import com.example.project1.data.Orders
 import com.example.project1.data.Tables
 import com.example.project1.ui.section.OrderTabItem
@@ -28,16 +28,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun OrderTabScreenTest() {
+fun OrderTabScreen() {
     var isFirstLoading by remember { mutableStateOf(true) } // Chỉ true lần đầu load dữ liệu
     var isRefreshing by remember { mutableStateOf(false) }  // Trạng thái khi refresh
     var isError by remember { mutableStateOf(false) }
 
     // Dữ liệu của orders, tables
     var ordersLists by remember { mutableStateOf(emptyList<Orders>()) }
-    var tablesLists by remember { mutableStateOf(emptyList<Tables>()) }
-    var ordersItemsList by remember { mutableStateOf(mutableMapOf<Orders, MutableList<ItemsResponseForItemOrder>>()) }
-    var ordersTablesList by remember { mutableStateOf(mutableMapOf<Orders, MutableList<TableResponseForOrderTable>>()) }
+    var ordersItemsList by remember { mutableStateOf(mutableMapOf<Orders, MutableList<ItemsResponseForItemByOrder>>()) }
+    var ordersTablesList by remember { mutableStateOf(mutableMapOf<Orders, MutableList<Tables>>()) }
     var checkedStatesMap by remember { mutableStateOf(mutableMapOf<Int, List<Boolean>>()) }
 
     LaunchedEffect(Unit) {
@@ -48,8 +47,7 @@ fun OrderTabScreenTest() {
                 isRefreshing = true
 
                 // Fetch data từ API
-                val newTablesLists = getAllTables()
-                val newOrdersLists = getAllOrders().filter { it.status == "pending" }
+                val newOrdersLists = getAllOrders().filter { it.status == "Pending" }
 
                 // Cập nhật ordersItemsList mà không reset trạng thái checkbox
                 for (order in newOrdersLists) {
@@ -75,7 +73,6 @@ fun OrderTabScreenTest() {
                     ordersItemsList.remove(it)
                 }
 
-                tablesLists = newTablesLists
                 ordersLists = newOrdersLists
 
                 if (isFirstLoading) isFirstLoading = false
@@ -83,9 +80,10 @@ fun OrderTabScreenTest() {
             } catch (e: Exception) {
                 isError = true
                 isRefreshing = false
+                Log.e("Error Api OrderTab", e.toString())
                 if (isFirstLoading) isFirstLoading = false
             }
-            delay(1000L)
+            delay(10000L)
         }
     }
 
@@ -94,9 +92,9 @@ fun OrderTabScreenTest() {
             CircularProgressIndicator()
         }
         isError -> {
-            Text("Error loading tables data")
+            Text("Error loading data")
         }
-        tablesLists.isEmpty() || ordersLists.isEmpty() -> {
+        ordersLists.isEmpty() -> {
             Text("No Data available")
         }
         else -> {
@@ -105,16 +103,16 @@ fun OrderTabScreenTest() {
                     Text("Refreshing data...")
                 }
                 // Hiển thị nội dung chính
-                OrderTabContentTest(ordersItemsList, ordersTablesList, checkedStatesMap)
+                OrderTabContent(ordersItemsList, ordersTablesList, checkedStatesMap)
             }
         }
     }
 }
 
 @Composable
-fun OrderTabContentTest(
-    ordersItemsList: MutableMap<Orders, MutableList<ItemsResponseForItemOrder>>,
-    ordersTablesList: MutableMap<Orders, MutableList<TableResponseForOrderTable>>,
+fun OrderTabContent(
+    ordersItemsList: MutableMap<Orders, MutableList<ItemsResponseForItemByOrder>>,
+    ordersTablesList: MutableMap<Orders, MutableList<Tables>>,
     checkedStatesMap: MutableMap<Int, List<Boolean>>
 ) {
     LazyVerticalStaggeredGrid(

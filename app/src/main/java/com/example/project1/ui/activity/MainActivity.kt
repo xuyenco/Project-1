@@ -2,50 +2,35 @@ package com.example.project1.ui.activity
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.TableRestaurant
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.project1.DataRequest.OrderRequest
 import com.example.project1.DataRequest.ReservationRequest
-import com.example.project1.DataResponse.OrderItemResponse
-import com.example.project1.DataResponse.OrderTableResponse
+import com.example.project1.DataRequest.Tables_ReservationRequest
+import com.example.project1.DataResponse.ItemByOrderIdResponse
+import com.example.project1.DataResponse.ReservationByTableIdResponse
+import com.example.project1.DataResponse.TableByOrderIdResponse
+import com.example.project1.DataResponse.TableByReservationIdResponse
 import com.example.project1.data.Items
 import com.example.project1.data.Orders
 import com.example.project1.data.Reservation
@@ -57,7 +42,6 @@ import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -141,7 +125,7 @@ fun HomeScreen() {
     ) {
         NavHost(navController = navController, startDestination = "order_tab") {
             composable("order_tab") {
-                OrderTabScreenTest() // Màn hình OrderTab
+                OrderTabScreen() // Màn hình OrderTab
             }
             composable("reservation_tab") {
                 ReservationTabScreen() // Màn hình ReservationTab
@@ -168,10 +152,22 @@ suspend fun getAllTables(): List<Tables> {
     }
 }
 //get table by orderID
-suspend fun getTableByOrderId(orderId: Int): OrderTableResponse? {
+suspend fun getTableByOrderId(orderId: Int): TableByOrderIdResponse? {
     return try{
         withContext(Dispatchers.IO) {
             ApiClient.orderTableService.getTableByOrderId(orderId)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        null
+    }
+}
+
+//get table by reservationID
+suspend fun getTableByReservationId(reservationId: Int): TableByReservationIdResponse? {
+    return try{
+        withContext(Dispatchers.IO) {
+            ApiClient.tableReservationsService.getTablesByReservationId(reservationId)
         }
     } catch (e: Exception) {
         Log.e("Api error", e.toString())
@@ -204,14 +200,14 @@ suspend fun getReservationById(id: Int): Reservation? {
 }
 
 // Get reservation by table ID
-suspend fun getReservationByTableId(reservationId: Int): List<Tables> {
+suspend fun getReservationByTableId(tableId: Int): ReservationByTableIdResponse? {
     return try {
         withContext(Dispatchers.IO) {
-            ApiClient.tableService.getTableByReservationId(reservationId)
+            ApiClient.tableReservationsService.getReservationsByTableId(tableId)
         }
     } catch (e: Exception) {
         Log.e("Api error", e.toString())
-        emptyList()
+        null
     }
 }
 
@@ -324,7 +320,7 @@ suspend fun getAllItems(): List<Items> {
 }
 
 //Get items by orderId
-suspend fun getItemByOrderId(orderId: Int): OrderItemResponse? {
+suspend fun getItemByOrderId(orderId: Int): ItemByOrderIdResponse? {
     return try {
         withContext(Dispatchers.IO) {
             ApiClient.orderItemService.getItemByOrderId(orderId)
@@ -332,6 +328,18 @@ suspend fun getItemByOrderId(orderId: Int): OrderItemResponse? {
     } catch (e: Exception) {
         Log.e("Api error", e.toString())
         null
+    }
+}
+
+//Delete TableReservation
+suspend fun deleteTableReservation(tableReservation: Tables_ReservationRequest): String {
+    return try {
+        withContext(Dispatchers.IO) {
+            ApiClient.tableReservationsService.deleteTableReservation(tableReservation)
+        }
+    } catch (e: Exception) {
+        Log.e("Api error", e.toString())
+        "Failed to delete table reservation"
     }
 }
 

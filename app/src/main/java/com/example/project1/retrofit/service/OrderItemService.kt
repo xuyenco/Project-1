@@ -1,7 +1,7 @@
 package com.example.project1.retrofit.service
 
-import com.example.project1.DataResponse.ItemOrderResponse
-import com.example.project1.DataResponse.OrderItemResponse
+import com.example.project1.DataResponse.ItemByOrderIdResponse
+import com.example.project1.DataResponse.OrderByItemIdResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 
@@ -9,11 +9,11 @@ import retrofit2.http.Path
 interface OrderItemService {
     //get Item by orderId
     @GET("api/orderitem/order/{orderId}")
-    suspend fun getItemByOrderId(@Path("orderId") orderId: Int): OrderItemResponse
+    suspend fun getItemByOrderId(@Path("orderId") orderId: Int): ItemByOrderIdResponse
 
     //get Order by itemId
     @GET("api/orderitem/item/{itemId}")
-    suspend fun getOrderByItemId(@Path("itemId") itemId: Int): ItemOrderResponse
+    suspend fun getOrderByItemId(@Path("itemId") itemId: Int): OrderByItemIdResponse
 
 
 }

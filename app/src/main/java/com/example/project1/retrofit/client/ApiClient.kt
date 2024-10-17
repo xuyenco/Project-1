@@ -5,6 +5,7 @@ import com.example.project1.retrofit.service.OrderItemService
 import com.example.project1.retrofit.service.OrderTableService
 import com.example.project1.retrofit.service.OrdersService
 import com.example.project1.retrofit.service.ReservationService
+import com.example.project1.retrofit.service.TableReservationService
 import com.example.project1.retrofit.service.TableService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -38,5 +39,8 @@ object ApiClient {
     }
     val orderTableService : OrderTableService by lazy {
         RetrofitClient.retrofit.create(OrderTableService::class.java)
+    }
+    val tableReservationsService : TableReservationService by lazy {
+        RetrofitClient.retrofit.create(TableReservationService::class.java)
     }
 }

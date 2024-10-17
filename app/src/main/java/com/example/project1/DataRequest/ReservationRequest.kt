@@ -7,5 +7,6 @@ data class ReservationRequest(
     val quantity: Int,
     val phone: String,
     val email: String,
-    val time: Date
+    val time: Date,
+    val status : String
 )

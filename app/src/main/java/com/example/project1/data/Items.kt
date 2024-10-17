@@ -6,7 +6,6 @@ data class Items(
     val items_id : Int,
     val name : String,
     val image_url : String,
-    val quantity : Int,
     val unit : String,
     val category : String,
     val price : Number,

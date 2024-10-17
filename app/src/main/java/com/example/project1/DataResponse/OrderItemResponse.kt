@@ -4,26 +4,44 @@ import java.util.Date
 
 
 // ItemResponse cho bảng nối OrderItem
-data class ItemsResponseForItemOrder(
+data class ItemsResponseForItemByOrder(
     val items_id: Int,
-    val item_name: String,
-    val quantity: Int,
-    val description: String
+    val name: String,
+    val image_url: String,
+    val unit: String,
+    val category : String,
+    val price : Double,
+    val quantity_used : Int,
+    val created_at : Date,
+    val updated_at : Date,
 )
 //JoinTable OrderItem
-data class OrderItemResponse(
-    val orderId : Int,
-    val items: List<ItemsResponseForItemOrder>
-)
-
-data class OrderResponseForItemOrder(
-    val order_id : Int,
+data class ItemByOrderIdResponse(
+    val orders_id : Int,
     val status : String,
+    val description : String,
     val created_at : Date,
-    val updated_at : Date
+    val updated_at : Date,
+    val items: List<ItemsResponseForItemByOrder>
 )
 
-data class ItemOrderResponse (
-    val itemId : Int,
-    val orders : List<OrderResponseForItemOrder>
+data class OrderResponseForOrderByItem(
+    val orders_id : Int,
+    val status : String,
+    val description : String,
+    val quantity_used : Int,
+    val created_at : Date,
+    val updated_at : Date,
+)
+
+data class OrderByItemIdResponse (
+    val items_id : Int,
+    val name : String,
+    val image_url : String,
+    val unit : String,
+    val category : String,
+    val price : Double,
+    val created_at: Date,
+    val updated_at: Date,
+    val orders : List<OrderResponseForOrderByItem>
 )
