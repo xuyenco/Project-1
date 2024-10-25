@@ -1,4 +1,4 @@
-package com.example.project1.ui.activity
+package com.example.project1.ui.activity.OrderTab
 
 import android.util.Log
 import androidx.compose.foundation.layout.Column
@@ -20,7 +20,10 @@ import com.example.project1.DataRequest.OrderRequest
 import com.example.project1.DataResponse.ItemsResponseForItemByOrder
 import com.example.project1.data.Orders
 import com.example.project1.data.Tables
-import com.example.project1.ui.section.OrderTabItem
+import com.example.project1.ui.activity.editOrder
+import com.example.project1.ui.activity.getAllOrders
+import com.example.project1.ui.activity.getItemByOrderId
+import com.example.project1.ui.activity.getTableByOrderId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -83,7 +86,7 @@ fun OrderTabScreen() {
                 Log.e("Error Api OrderTab", e.toString())
                 if (isFirstLoading) isFirstLoading = false
             }
-            delay(10000L)
+            delay(5000L)
         }
     }
 
@@ -125,6 +128,8 @@ fun OrderTabContent(
 
                 // Lọc các Table liên kết với Order hiện tại
                 val tablesForOrder = ordersTablesList[order] ?: emptyList()
+                //Lấy description cho order
+                val description = order.description
 
                 // Lấy trạng thái checkbox hiện tại từ map
                 val checkedStates = checkedStatesMap[order.orders_id] ?: List(itemsForOrder.size) { false }
@@ -132,6 +137,7 @@ fun OrderTabContent(
                 OrderTabItem(
                     itemsList = itemsForOrder,
                     tablesList = tablesForOrder,
+                    description = description,
                     checkedStates = checkedStates,
                     onCheckedChange = { updatedStates ->
                         checkedStatesMap[order.orders_id] = updatedStates

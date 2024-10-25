@@ -16,7 +16,7 @@ data class ReservationByTableIdResponse(
     val status : String,
     val created_at : Date,
     val updated_at : Date,
-    val reservations : List<Reservation>
+    var reservations : List<Reservation>
 )
 
 //Get Table by orderID

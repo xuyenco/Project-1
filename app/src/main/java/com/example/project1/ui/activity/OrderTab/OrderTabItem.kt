@@ -1,4 +1,4 @@
-package com.example.project1.ui.section
+package com.example.project1.ui.activity.OrderTab
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +21,7 @@ import com.example.project1.data.Tables
 fun OrderTabItem(
     itemsList: List<ItemsResponseForItemByOrder>,
     tablesList: List<Tables>,
+    description : String?,
     checkedStates: List<Boolean>,
     onCheckedChange: (List<Boolean>) -> Unit,
     onOrderCompleted: () -> Unit
@@ -55,6 +56,7 @@ fun OrderTabItem(
         // Hiển thị danh sách các dishes
         Box(modifier = Modifier.padding(8.dp)) {
             Column {
+                //Hiện danh sách món ăn
                 for ((index, dish) in itemsList.withIndex()) {
                     Row(
                         modifier = Modifier.padding(vertical = 4.dp)
@@ -85,6 +87,13 @@ fun OrderTabItem(
                         )
                     }
                 }
+                //Hiện description
+                Text(
+                    text = "Description: $description",
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
+                )
             }
         }
     }
