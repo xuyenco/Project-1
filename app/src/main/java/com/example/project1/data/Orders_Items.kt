@@ -6,7 +6,11 @@ data class Orders_Items(
     val items_id: Int,
     val orders_id: Int,
     val quantity: Int,
-    val description : String,
     val created_at : Date,
     val updated_at : Date
+)
+data class AssignOrderItemRequest(
+    val items_id: Int,
+    val orders_id: Int,
+    val quantity: Int,
 )

@@ -40,6 +40,10 @@ fun TableOrderItem(
     isSelected: Boolean
 ) {
     val backgroundColor = if (isSelected) Color.Red else Color.White // Thay đổi màu nền khi được chọn
+    val surfaceColor = when {
+        reservation.status == "Ordered" -> Color.Green
+        else -> MaterialTheme.colorScheme.surface
+    }
     Box(
         modifier = Modifier
             .padding(8.dp)
@@ -48,8 +52,8 @@ fun TableOrderItem(
             .fillMaxWidth()
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.padding(4.dp).fillMaxWidth(),
+            color = surfaceColor,
             shape = RoundedCornerShape(8.dp),
             shadowElevation = 4.dp
         ) {
@@ -91,27 +95,7 @@ fun TableOrderItem(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewTableOrderItem() {
-    val reservation = Reservation(
-        reservations_id = 1,
-        quantity = 4,
-        name = "John Doe",
-        phone = "123456789",
-        email = "john.doe@example.com",
-        time = Date(),
-        created_at = Date(),
-        updated_at = Date()
-    )
 
-    TableOrderItem(
-        reservation = reservation,
-        tablesList = "Table 1, Table 3",
-        onClick = {},
-        isSelected = true
-    )
-}
 @Composable
 fun MenuItem(item: Items, onClick: () -> Unit) {
     Box(

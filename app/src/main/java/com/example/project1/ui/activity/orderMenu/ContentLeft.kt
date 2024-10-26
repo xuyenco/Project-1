@@ -101,7 +101,7 @@ fun ContentLeft(
                 is Reservation -> {
                     val isSelected = selectedReservation == item
                     // Tạo danh sách bàn (tableList) cho mỗi Reservation
-                    val tableList = tablesReservations
+                        val tableList = tablesReservations
                         .filter { it.reservations_id == item.reservations_id } // Lọc các Tables_Reservations liên quan đến Reservation
                         .mapNotNull { tablesRes ->
                             tableItemList.find { it.tables_id == tablesRes.tables_id } // Tìm các Tables tương ứng

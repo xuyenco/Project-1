@@ -1,10 +1,12 @@
 package com.example.project1.ui.activity.orderMenu
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -12,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,21 +33,21 @@ import kotlinx.coroutines.delay
 import java.util.Date
 
 val itemsList = listOf(
-    Items(1, "Cá lóc nướng trui", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image11.png", 1, "portion", "Main Course", 100000, Date(), Date()),
-    Items(2, "Cá hồi sốt chanh mật ong", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image8.png", 1, "portion", "Main Course", 150000, Date(), Date()),
-    Items(3, "Gà xé phay chua ngọt", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image15.png", 1, "portion", "Main Course", 90000, Date(), Date()),
-    Items(4, "Thịt ngan hấp bia", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image4.png", 1, "portion", "Main Course", 200000, Date(), Date()),
-    Items(5, "Gà nấu nấm", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image1.png", 1, "portion", "Main Course", 125000, Date(), Date()),
-    Items(6, "Giò heo muối xông khói", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image20.png", 1, "portion", "Course", 85000, Date(), Date())
+    Items(1, "Cá lóc nướng trui", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image11.png", "portion", "Main Course", 100000, Date(), Date()),
+    Items(2, "Cá hồi sốt chanh mật ong", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image8.png", "portion", "Main Course", 150000, Date(), Date()),
+    Items(3, "Gà xé phay chua ngọt", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image15.png", "portion", "Main Course", 90000, Date(), Date()),
+    Items(4, "Thịt ngan hấp bia", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image4.png", "portion", "Main Course", 200000, Date(), Date()),
+    Items(5, "Gà nấu nấm", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image1.png", "portion", "Main Course", 125000, Date(), Date()),
+    Items(6, "Giò heo muối xông khói", "https://statics.vincom.com.vn/xu-huong/0-0-0-0-mon-nhau-don-gian/image20.png", "portion", "Course", 85000, Date(), Date())
 )
 
 // List of 5 Reservations
 val reservationsList = listOf(
-    Reservation(1, 10, "Alice Smith", "0123456789", "alice@example.com", Date(), Date(), Date()),
-    Reservation(2, 8, "Bob Johnson", "0987654321", "bob@example.com", Date(), Date(), Date()),
-    Reservation(3, 6, "Charlie Brown", "1122334455", "charlie@example.com", Date(), Date(), Date()),
-    Reservation(4, 12, "David Wilson", "2233445566", "david@example.com", Date(), Date(), Date()),
-    Reservation(5, 14, "Eva Green", "3344556677", "eva@example.com", Date(), Date(), Date())
+    Reservation(1, 10, "Alice Smith", "0123456789", "alice@example.com","pending", Date(), Date(), Date()),
+    Reservation(2, 8, "Bob Johnson", "0987654321", "bob@example.com","pending", Date(), Date(), Date()),
+    Reservation(3, 6, "Charlie Brown", "1122334455", "charlie@example.com","arrived", Date(), Date(), Date()),
+    Reservation(4, 12, "David Wilson", "2233445566", "david@example.com","pending", Date(), Date(), Date()),
+    Reservation(5, 14, "Eva Green", "3344556677", "eva@example.com","ordered", Date(), Date(), Date())
 )
 
 // List of Tables
@@ -113,15 +116,25 @@ fun OrderLayoutScreen() {
                 isLoading = false
             }
 
-            delay(1000L) // Chờ 1 giây trước khi fetch lại
+            delay(5000L) // Chờ 5 giây trước khi fetch lại
         }
     }
 
     // Hiển thị giao diện dựa trên trạng thái
     if (isLoading) {
-        Text(text = "Đang tải dữ liệu...")
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator() // ProgressBar tròn
+        }
     } else if (isError) {
-        Text(text = "Có lỗi xảy ra...")
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "Có lỗi xảy ra...")
+        }
     } else {
         OrderLayout(reservationsList, tableList, tablesReservationsList, menuList)
     }
@@ -136,10 +149,12 @@ fun OrderLayout(
     val selectedTables = remember { mutableStateOf<List<Tables>>(emptyList()) }
     val (selectedMenus, setSelectedMenus) = remember { mutableStateOf<List<Items>>(emptyList()) }
     val selectedReservation = remember { mutableStateOf<Reservation?>(null) } // Trạng thái cho Reservation đã chọn
+    val quantities = remember { mutableStateOf<Map<Int, Int>>(emptyMap()) } // Map cho quantity
 
     fun resetSelections() {
         selectedTables.value = emptyList()  // Reset bàn đã chọn
         setSelectedMenus(emptyList())  // Reset danh sách món đã chọn
+        quantities.value = emptyMap()
         selectedReservation.value = null
     }
 
@@ -173,6 +188,9 @@ fun OrderLayout(
                 onMenuItemClick = { menuItem ->
                     if (!selectedMenus.contains(menuItem)) {
                         setSelectedMenus(selectedMenus + menuItem)
+                        quantities.value = quantities.value.toMutableMap().apply {
+                            this[menuItem.items_id] = 1 // Mặc định số lượng là 1 khi thêm món mới
+                        }
                     }
                 }
             )
@@ -186,10 +204,26 @@ fun OrderLayout(
                 .padding(8.dp)
         ) {
             ContentRight(
+                reservation = selectedReservation.value,
                 selectedTables = selectedTables.value,
                 selectedMenus = selectedMenus,
+                quantities = quantities.value,
+                onIncreaseQuantity = { itemId ->
+                    quantities.value = quantities.value.toMutableMap().apply {
+                        this[itemId] = (this[itemId] ?: 1) + 1
+                    }
+                },
+                onDecreaseQuantity = { itemId ->
+                    quantities.value = quantities.value.toMutableMap().apply {
+                        val currentQuantity = this[itemId] ?: 1
+                        if (currentQuantity > 1) {
+                            this[itemId] = currentQuantity - 1
+                        }
+                    }
+                },
                 onRemoveMenuItem = { menuItem ->
                     setSelectedMenus(selectedMenus - menuItem)
+                    quantities.value = quantities.value - menuItem.items_id
                 },
                 onCancel = { resetSelections() }
             )
