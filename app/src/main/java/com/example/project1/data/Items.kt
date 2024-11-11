@@ -8,7 +8,19 @@ data class Items(
     val image_url : String,
     val unit : String,
     val category : String,
-    val price : Number,
+    val price : Int,
     val created_at : Date,
-    val updated_at : Date
+    val updated_at : Date,
+    var quantity_used: Int = 1
+)
+data class ItemsResponse(
+    val items_id: Int,
+    val name: String,
+    val image_url: String,
+    val unit: String,
+    val category: String,
+    val price: Int,
+    val created_at: Date,
+    val updated_at: Date,
+    val quantity_used: Int
 )

@@ -4,6 +4,8 @@ import com.example.project1.DataRequest.ReservationRequest
 import com.example.project1.data.Reservation
 import retrofit2.http.Body
 import retrofit2.http.DELETE
+import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -14,6 +16,11 @@ interface ReservationService {
     // Lấy tất cả các Reservation
     @GET("/api/reservation/getall")
     suspend fun getAllReservation(): List<Reservation>
+    @PATCH("api/reservation/{reservationId}")
+    suspend fun updateReservationStatus(
+        @Path("reservationId") reservationId: Int,
+        @Body statusUpdate: Map<String, String> // Body với status mới
+    ): Response<Void>
 
     // Lấy một Reservation theo id
     @GET("/api/reservation/get/{id}")

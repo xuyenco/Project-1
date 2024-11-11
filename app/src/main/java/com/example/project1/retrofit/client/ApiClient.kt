@@ -71,6 +71,8 @@ object RetrofitClient {
         .addInterceptor(authInterceptor)
         .build()
 
+//    private const val BASE_URL = "http://192.168.59.1:5001"
+    private const val BASE_URL = "http://192.168.168.1:5001"
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -101,5 +103,8 @@ object ApiClient {
     }
     val tableReservationsService : TableReservationService by lazy {
         RetrofitClient.retrofit.create(TableReservationService::class.java)
+    }
+    val reservationTableService : ReservationTableService by lazy {
+        RetrofitClient.retrofit.create(ReservationTableService::class.java)
     }
 }
