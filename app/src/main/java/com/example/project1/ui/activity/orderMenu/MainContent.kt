@@ -23,8 +23,6 @@ import com.example.project1.data.Items
 import com.example.project1.data.Reservation
 import com.example.project1.data.Tables
 import com.example.project1.data.Tables_Reservations
-import com.example.project1.retrofit.client.ApiClient
-import com.example.project1.ui.activity.ReservationTabContent
 import com.example.project1.ui.activity.getAllItems
 import com.example.project1.ui.activity.getAllReservations
 import com.example.project1.ui.activity.getAllTables

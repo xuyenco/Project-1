@@ -2,42 +2,24 @@ package com.example.project1.ui.activity
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.TableRestaurant
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,12 +41,11 @@ import com.example.project1.retrofit.client.RetrofitClient
 import com.example.project1.ui.activity.Login.LoginScreen
 import com.example.project1.ui.activity.OrderTab.OrderTabScreen
 import com.example.project1.ui.activity.ReservationTab.ReservationTabScreen
-import com.example.project1.ui.activity.SubComposable.OrderLayout
+import com.example.project1.ui.activity.orderMenu.OrderLayoutScreen
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -166,7 +147,7 @@ fun HomeScreen() {
                 MainActivityScreen()
             }
             composable("order_menu") {
-                OrderLayout()
+                OrderLayoutScreen()
             }
         }// Use the list of tables when available
     }

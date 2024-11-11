@@ -21,8 +21,6 @@ data class Orders(
         return orders_id.hashCode()
     }
 }
-
-)
 data class CreateOrderRequest(
     val reservation_id: Int,
     val description: String,

@@ -6,6 +6,7 @@ import com.example.project1.retrofit.service.ItemService
 import com.example.project1.retrofit.service.OrderItemService
 import com.example.project1.retrofit.service.OrdersService
 import com.example.project1.retrofit.service.ReservationService
+import com.example.project1.retrofit.service.ReservationTableService
 import com.example.project1.retrofit.service.TableReservationService
 import com.example.project1.retrofit.service.TableService
 import kotlinx.coroutines.runBlocking
@@ -20,6 +21,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private const val BASE_URL = "http://192.168.59.1:5001"
+//    private const val BASE_URL = "http://192.168.168.1:5001"
+
     var token: String? = null
     private lateinit var appContext: Context
     fun initialize(context: Context) {
@@ -70,9 +73,6 @@ object RetrofitClient {
     private val client = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
         .build()
-
-//    private const val BASE_URL = "http://192.168.59.1:5001"
-    private const val BASE_URL = "http://192.168.168.1:5001"
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
