@@ -16,6 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -66,6 +67,14 @@ fun ContentLeft(
     val (itemsType, setItemsType) = remember { mutableStateOf("reservations") } // Trạng thái lưu loại danh sách hiện tại
     val searchText = remember { mutableStateOf("") } // Trạng thái lưu trữ văn bản tìm kiếm
 
+    // Update items list based on external changes
+    LaunchedEffect(reservations, menuList) {
+        if (itemsType == "reservations") {
+            setItems(reservations)
+        } else if (itemsType == "menu") {
+            setItems(menuList)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

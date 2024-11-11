@@ -41,7 +41,8 @@ fun TableOrderItem(
 ) {
     val backgroundColor = if (isSelected) Color.Red else Color.White // Thay đổi màu nền khi được chọn
     val surfaceColor = when {
-        reservation.status == "Ordered" -> Color.Green
+        reservation.status == "Đã đặt món" -> Color.Green
+        reservation.status == "Hoàn thành" -> Color.Red
         else -> MaterialTheme.colorScheme.surface
     }
     Box(

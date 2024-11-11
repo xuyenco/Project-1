@@ -10,7 +10,8 @@ data class Items(
     val category : String,
     val price : Int,
     val created_at : Date,
-    val updated_at : Date
+    val updated_at : Date,
+    var quantity_used: Int = 1
 )
 data class ItemsResponse(
     val items_id: Int,
