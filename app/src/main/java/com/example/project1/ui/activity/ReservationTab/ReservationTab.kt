@@ -27,6 +27,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -59,7 +61,7 @@ fun ReservationTabScreen(){
 
     //Dữ liệu lấy từ api
     var tablesLists by remember { mutableStateOf<List<Tables>>(emptyList()) }
-    var tableReservationsList by remember { mutableStateOf(mutableMapOf<Tables, MutableList<Reservation>>())}
+    var tableReservationsList = remember { SnapshotStateMap<Tables, SnapshotStateList<Reservation>>()}
 
     //Input Time để tìm kiếm và đặt reservation
     var inputTime by remember { mutableStateOf("") }
@@ -85,8 +87,8 @@ fun ReservationTabScreen(){
                     if (reservationsResponse != null && reservationsResponse.reservations.isNotEmpty()) {
                         // chỉ lấy những reservation chưa compeleted
                         reservationsResponse.reservations = reservationsResponse.reservations.filter {
-                            it.time.time > (getCurrentDateTime().time - 2 * 60 * 60 * 1000) && it.status != "Completed" }
-                        tableReservationsList[table] = reservationsResponse.reservations.toMutableList()
+                            it.time.time > (getCurrentDateTime().time - 2 * 60 * 60 * 1000) && it.status != "Hoàn thành" }
+                        tableReservationsList[table] = reservationsResponse.reservations.toMutableStateList()
 
                     }
                 }
@@ -189,7 +191,7 @@ fun ReservationTabScreen(){
 @Composable
 fun ReservationTabContent(
     tablesLists: List<Tables>,
-    tableReservationsList : MutableMap<Tables, MutableList<Reservation>>,
+    tableReservationsList : SnapshotStateMap<Tables, SnapshotStateList<Reservation>>,
     inputTime: String,
     onInputTimeChange :(String) -> Unit,
     onShowPopupChange: (Boolean) -> Unit,
@@ -239,7 +241,7 @@ fun ReservationTabContent(
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             var tablesByReservationId = ApiClient.tableReservationsService.getTablesByReservationId(id)
-                            Log.e("TableByReservationID", tablesByReservationId.toString())
+//                            Log.e("TableByReservationID", tablesByReservationId.toString())
                             if (tablesByReservationId.tables.isNotEmpty()){
                                 for (table in tablesByReservationId.tables){
                                     val tableReservation = Tables_ReservationRequest(
@@ -302,7 +304,7 @@ fun ContentLeft(
     onTableClick: (Int) -> Unit,
     tablesLists: List<Tables>,
     onShowPopup : () -> Unit,
-    tableReservationsList : MutableMap<Tables, MutableList<Reservation>>,
+    tableReservationsList : SnapshotStateMap<Tables, SnapshotStateList<Reservation>>,
     inputTime : String,
     onInputTimeChange :(String) -> Unit,
     selectedTableIds : SnapshotStateList<Int?>
@@ -384,7 +386,7 @@ fun ContentLeft(
 @Composable
 fun ContentRight(
     selectedTableId: Int?,
-    tableReservationsList : MutableMap<Tables, MutableList<Reservation>>,
+    tableReservationsList : SnapshotStateMap<Tables, SnapshotStateList<Reservation>>,
     onEditClick: (Reservation) -> Unit,
     onDeleteClick: (Reservation) -> Unit,
     onStatusChange: (Reservation) -> Unit) {

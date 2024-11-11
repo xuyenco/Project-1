@@ -11,13 +11,14 @@ data class ItemsResponseForItemByOrder(
     val unit: String,
     val category : String,
     val price : Double,
-    val quantity_used : Int,
+    var quantity_used : Int,
     val created_at : Date,
     val updated_at : Date,
 )
 //JoinTable OrderItem
 data class ItemByOrderIdResponse(
     val orders_id : Int,
+    val reservations_id : Int,
     val status : String,
     val description : String,
     val created_at : Date,

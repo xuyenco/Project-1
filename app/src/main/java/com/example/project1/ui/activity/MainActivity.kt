@@ -29,7 +29,6 @@ import com.example.project1.DataRequest.ReservationRequest
 import com.example.project1.DataRequest.Tables_ReservationRequest
 import com.example.project1.DataResponse.ItemByOrderIdResponse
 import com.example.project1.DataResponse.ReservationByTableIdResponse
-import com.example.project1.DataResponse.TableByOrderIdResponse
 import com.example.project1.DataResponse.TableByReservationIdResponse
 import com.example.project1.data.Items
 import com.example.project1.data.Orders
@@ -37,6 +36,8 @@ import com.example.project1.data.Reservation
 import com.example.project1.data.SideNavbar
 import com.example.project1.data.Tables
 import com.example.project1.retrofit.client.ApiClient
+import com.example.project1.retrofit.client.RetrofitClient
+import com.example.project1.ui.activity.Login.LoginScreen
 import com.example.project1.ui.activity.OrderTab.OrderTabScreen
 import com.example.project1.ui.activity.ReservationTab.ReservationTabScreen
 import com.example.project1.ui.activity.SubComposable.OrderLayout
@@ -73,6 +74,7 @@ private val navBarItemList = listOf(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        RetrofitClient.initialize(applicationContext)
         setContent {
             Project1Theme {
                 SetNavbarColor(color = MaterialTheme.colorScheme.background)
@@ -80,7 +82,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HomeScreen()
+
+                    val navController = rememberNavController()
+
+                    NavHost(navController = navController, startDestination = "login") {
+                        composable("login") { LoginScreen(navController) }
+                        composable("home") { HomeScreen() }
+                    }
+//                    LoginScreen(navController)
+//                    HomeScreen()
                 }
 
             }
@@ -99,6 +109,8 @@ private fun SetNavbarColor(color : Color){
 fun MainActivityScreen(){
     Text(text = "Đây là màn hình chính")
 }
+
+
 
 @Composable
 fun HomeScreen() {
@@ -125,7 +137,7 @@ fun HomeScreen() {
             }
         }
     ) {
-        NavHost(navController = navController, startDestination = "order_tab") {
+        NavHost(navController = navController, startDestination = "home") {
             composable("order_tab") {
                 OrderTabScreen() // Màn hình OrderTab
             }
@@ -149,22 +161,10 @@ suspend fun getAllTables(): List<Tables> {
             ApiClient.tableService.getAllTable()
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api getAllTables error", e.toString())
         emptyList()
     }
 }
-//get table by orderID
-suspend fun getTableByOrderId(orderId: Int): TableByOrderIdResponse? {
-    return try{
-        withContext(Dispatchers.IO) {
-            ApiClient.orderTableService.getTableByOrderId(orderId)
-        }
-    } catch (e: Exception) {
-        Log.e("Api error", e.toString())
-        null
-    }
-}
-
 //get table by reservationID
 suspend fun getTableByReservationId(reservationId: Int): TableByReservationIdResponse? {
     return try{
@@ -172,7 +172,7 @@ suspend fun getTableByReservationId(reservationId: Int): TableByReservationIdRes
             ApiClient.tableReservationsService.getTablesByReservationId(reservationId)
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api getTableByReservationId error", e.toString())
         null
     }
 }
@@ -208,7 +208,7 @@ suspend fun getReservationByTableId(tableId: Int): ReservationByTableIdResponse?
             ApiClient.tableReservationsService.getReservationsByTableId(tableId)
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api getReservationByTableId error", e.toString())
         null
     }
 }
@@ -256,7 +256,7 @@ suspend fun getAllOrders(): List<Orders> {
             ApiClient.orderService.getAllOrders()
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api get all Order error", e.toString())
         emptyList()
     }
 }
@@ -292,7 +292,7 @@ suspend fun editOrder(id: Int, order: OrderRequest): Orders? {
             ApiClient.orderService.editOrder(order, id)
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api edit order error", e.toString())
         null
     }
 }
@@ -328,7 +328,7 @@ suspend fun getItemByOrderId(orderId: Int): ItemByOrderIdResponse? {
             ApiClient.orderItemService.getItemByOrderId(orderId)
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api getItemByOrderId error", e.toString())
         null
     }
 }
@@ -340,7 +340,7 @@ suspend fun deleteTableReservation(tableReservation: Tables_ReservationRequest):
             ApiClient.tableReservationsService.deleteTableReservation(tableReservation)
         }
     } catch (e: Exception) {
-        Log.e("Api error", e.toString())
+        Log.e("Api deleteTableReservation error", e.toString())
         "Failed to delete table reservation"
     }
 }

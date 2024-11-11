@@ -30,7 +30,7 @@ fun ReservationItem(
     onStatusChange: (Reservation) -> Unit)
 {
     var expanded by remember { mutableStateOf(false) }  // State để theo dõi menu có đang mở hay không
-    val toggleStatus = reservation.status == "Arrived"
+    val toggleStatus = reservation.status == "Đã đến"
 
     Box {
         Row(
@@ -51,13 +51,12 @@ fun ReservationItem(
                     Switch(
                         checked = toggleStatus,
                         onCheckedChange = {isChecked ->
-                            val updatedReservation = reservation.copy(status = if (isChecked) "Arrived" else "Pending")
+                            val updatedReservation = reservation.copy(status = if (isChecked) "Đã đến" else "Đang chờ")
                             onStatusChange(updatedReservation) // Gọi callback để xử lý cập nhật
                         }
                     )
-                    Text(if (toggleStatus) "Arrived" else "Pending")
+                    Text(if (toggleStatus) "Đã đến" else "Đang chờ")
                 }
-//                Text(text = "Trạng thái: ${reservation.status}")
             }
         }
 

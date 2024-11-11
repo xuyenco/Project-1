@@ -4,6 +4,7 @@ import java.util.Date
 
 data class Orders(
     val orders_id: Int,
+    val reservations_id : Int,
     var status : String,
     var description : String,
     val created_at : Date,

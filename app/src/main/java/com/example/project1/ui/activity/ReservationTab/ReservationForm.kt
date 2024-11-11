@@ -32,7 +32,7 @@ fun ReservationForm(
     var phone by remember { mutableStateOf(reservation?.phone ?: "") }
     var email by remember { mutableStateOf(reservation?.email ?: "") }
     var quantity by remember { mutableStateOf(reservation?.quantity?.toString() ?: "") }
-    var status by remember { mutableStateOf("Pending") } // Trạng thái mặc định cho đặt bàn mới
+    var status by remember { mutableStateOf("Đang chờ") } // Trạng thái mặc định cho đặt bàn mới
     var toggleStatus by remember { mutableStateOf(false) } // Trạng thái của nút bật/tắt
 
     // Chuyển các tableId thành chuỗi để hiển thị
@@ -71,10 +71,10 @@ fun ReservationForm(
                     checked = toggleStatus,
                     onCheckedChange = { isChecked ->
                         toggleStatus = isChecked
-                        status = if (isChecked) "Arrived" else "Pending"
+                        status = if (isChecked) "Đã đến" else "Đang chờ"
                     }
                 )
-                Text(if (toggleStatus) "Arrived" else "Pending")
+                Text(if (toggleStatus) "Đã đến" else "Đang chờ")
             }
         }
 

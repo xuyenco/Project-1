@@ -64,7 +64,7 @@ fun OrderTabItem(
                         val isChecked = checkedStates[index]
 
                         Text(
-                            text = dish.name,
+                            text = dish.name + ": " + dish.quantity_used,
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(end = 8.dp)
