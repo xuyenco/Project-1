@@ -1,7 +1,6 @@
 package com.example.project1.retrofit.client
 
 import android.content.Context
-import android.util.Log
 import com.example.project1.retrofit.service.AuthService
 import com.example.project1.retrofit.service.ItemService
 import com.example.project1.retrofit.service.OrderItemService
@@ -30,10 +29,10 @@ object RetrofitClient {
         appContext = context.applicationContext  // Sử dụng applicationContext để tránh memory leak
         TokenManager.initialize(context)
     }
-    // Authenticator để xử lý lỗi 401 và refresh token
+    // Authenticator để xử lý lỗi 410 và refresh token
     val tokenAuthenticator = object : Authenticator {
         override fun authenticate(route: Route?, response: Response): Request? {
-            return if (response.code == 410) { // Kiểm tra mã lỗi 401
+            return if (response.code == 410) { // Kiểm tra mã lỗi 410
                 val newAccessToken = runBlocking {
                     val refreshResponse = ApiClient.authService.refreshToken()
                     if (refreshResponse.isSuccessful) {
@@ -65,17 +64,11 @@ object RetrofitClient {
         val requestBuilder = original.newBuilder()
 
         val accessToken = TokenManager.getAccessToken()  // Lấy accessToken từ TokenManager
-        if (accessToken == null) {
-            Log.d("RetrofitClient", "Access token is null.")
-        } else {
-            Log.d("RetrofitClient", "Access token: $accessToken")
-        } // Lấy accessToken từ TokenManager
         accessToken?.let {
             requestBuilder.addHeader("Authorization", "Bearer $it")
         }
 
         val request = requestBuilder.build()
-        Log.d("RetrofitClient", "Request headers: ${request.headers}")
         chain.proceed(request)
     }
     private val client = OkHttpClient.Builder()

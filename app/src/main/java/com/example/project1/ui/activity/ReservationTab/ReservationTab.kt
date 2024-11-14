@@ -87,9 +87,9 @@ fun ReservationTabScreen(){
                     if (reservationsResponse != null && reservationsResponse.reservations.isNotEmpty()) {
                         // chỉ lấy những reservation chưa compeleted
                         reservationsResponse.reservations = reservationsResponse.reservations.filter {
+                            //Chỉ lấy reservation tại thời điểm hiện tải đổ về trước 2 giờ
                             it.time.time > (getCurrentDateTime().time - 2 * 60 * 60 * 1000) && it.status != "Hoàn thành" }
                         tableReservationsList[table] = reservationsResponse.reservations.toMutableStateList()
-
                     }
                 }
                 if (isFirstLoading) isFirstLoading = false
@@ -139,50 +139,75 @@ fun ReservationTabScreen(){
             popupWidth = 500f,
             popupHeight = 600f,
             showPopup = showPopup,
-            onClickOutside = { showPopup = false }
+            onClickOutside = {
+                showPopup = false
+                selectedReservation = null
+            }
         ) {
             ReservationForm(
                 reservation = selectedReservation,
                 inputTime = inputTime,
-                onSubmit = {
-                        reservationRequest ->
+                onSubmit = { reservationRequest ->
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
+                            var isAvailable = true
+                            val inputTimeDate = inputTime.toDate("yyyy/MM/dd HH:mm:ss")
+
+                            // Kiểm tra từng reservation trong tableReservationsList chỉ với các bàn có trong selectedTableIds
+                            for ((table, reservations) in tableReservationsList) {
+                                if (table.tables_id in selectedTableIds && reservations != null && inputTimeDate != null) {
+                                    val isTableAvailable = checkReservation(reservations, inputTimeDate)
+                                    if (!isTableAvailable) {
+                                        isAvailable = false
+                                        break
+                                    }
+                                }
+                            }
+
                             if (selectedReservation == null) {
-                                // Tạo mới
-                                if (selectedTableIds != null){
+                                if (selectedTableIds != null && isAvailable) {
                                     val reservation = ApiClient.reservationService.createReservation(reservationRequest)
-                                    for(id in selectedTableIds.filterNotNull() ){
+                                    for (id in selectedTableIds.filterNotNull()) {
                                         val tableReservation = Tables_ReservationRequest(
                                             reservations_id = reservation.reservations_id,
                                             tables_id = id
                                         )
-                                        val response = ApiClient.tableReservationsService.addTableReservation(tableReservation)
+                                        ApiClient.tableReservationsService.addTableReservation(tableReservation)
                                     }
-
-                                }
-                                else{
-                                    showPopup = false
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(context, "Please select table", Toast.LENGTH_SHORT).show()
+                                        showPopup = false
+                                    }
+                                } else {
+                                    withContext(Dispatchers.Main) {
+                                        if (selectedTableIds == null) {
+                                            Toast.makeText(context, "Please select table", Toast.LENGTH_SHORT).show()
+                                        }
+                                        if (!isAvailable) {
+                                            Toast.makeText(context, "Table is not available at the selected time", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
                                 }
-
-
                             } else {
-//                             Cập nhật
+                                // Cập nhật reservation nếu đã tồn tại
                                 ApiClient.reservationService.editReservation(
-                                    reservationRequest,selectedReservation!!.reservations_id
+                                    reservationRequest, selectedReservation!!.reservations_id
                                 )
+                                withContext(Dispatchers.Main) {
+                                    showPopup = false
+                                    selectedReservation = null
+                                }
                             }
-                            withContext(Dispatchers.Main) { showPopup = false }
                         } catch (e: Exception) {
                             Log.e("Reservation", "Error: ${e.message}")
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "An error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 },
                 selectedTableIds
             )
+
         }
     }
 
@@ -236,12 +261,14 @@ fun ReservationTabContent(
                     onShowPopupChange(true) // Show the popup
                 },
                 onDeleteClick = {
-                    reservation -> onSelectedReservationChange(reservation)
-                    val id = selectedReservation!!.reservations_id
+                    reservation ->
+//                    onSelectedReservationChange(reservation)
+//                    val id = selectedReservation!!.reservations_id
+//                    Log.e("Deleted reservation", "Deleted reservation: $reservation")
+                    val id = reservation.reservations_id
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            var tablesByReservationId = ApiClient.tableReservationsService.getTablesByReservationId(id)
-//                            Log.e("TableByReservationID", tablesByReservationId.toString())
+                            val tablesByReservationId = ApiClient.tableReservationsService.getTablesByReservationId(id)
                             if (tablesByReservationId.tables.isNotEmpty()){
                                 for (table in tablesByReservationId.tables){
                                     val tableReservation = Tables_ReservationRequest(
@@ -259,6 +286,9 @@ fun ReservationTabContent(
                             }
                             ApiClient.reservationService.deleteReservation(id)
 
+                            withContext(Dispatchers.Main) {
+                                onSelectedReservationChange(null)
+                            }
 
                         } catch (e: Exception) {
                             Log.e("Reservation", "Error: I have no Ideal ${e.message}")

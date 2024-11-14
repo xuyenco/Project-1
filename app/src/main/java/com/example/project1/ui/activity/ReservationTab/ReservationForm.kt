@@ -48,7 +48,7 @@ fun ReservationForm(
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Tên") })
         OutlinedTextField(value = quantity, onValueChange = { quantity = it }, label = { Text("Số lượng") })
 
-        if (status != "Arrived") {
+        if (status != "Đã đến") {
             OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Số điện thoại") })
             OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
 
