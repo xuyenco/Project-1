@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.TableRestaurant
 import androidx.compose.material3.Divider
@@ -53,10 +52,6 @@ import java.util.Locale
 
 
 private val navBarItemList = listOf(
-    SideNavbar(
-        title = "Home",
-        icon = Icons.Default.Home
-    ),
     SideNavbar(
         title = "Order Menu",
         icon = Icons.Default.TableRestaurant
@@ -124,7 +119,6 @@ fun HomeScreen() {
                             when (item.title) {
                                 "Order Tab" -> navController.navigate("order_tab")
                                 "Reservation Tab" -> navController.navigate("reservation_tab")
-                                "Home" -> navController.navigate("home")
                                 "Order Menu" -> navController.navigate("order_menu")
                             }
                         }
@@ -133,15 +127,12 @@ fun HomeScreen() {
             }
         }
     ) {
-        NavHost(navController = navController, startDestination = "home") {
+        NavHost(navController = navController, startDestination = "reservation_tab") {
             composable("order_tab") {
                 OrderTabScreen() // Màn hình OrderTab
             }
             composable("reservation_tab") {
                 ReservationTabScreen() // Màn hình ReservationTab
-            }
-            composable("home") {
-                MainActivityScreen()
             }
             composable("order_menu") {
                 OrderLayoutScreen()

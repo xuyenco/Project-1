@@ -5,6 +5,6 @@ import retrofit2.http.GET
 
 
 interface TableService {
-    @GET("/api/test_auth_table/getall")
+    @GET("/api/table/getall")
     suspend fun getAllTable(): List<Tables>
 }

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -16,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.project1.DataRequest.ReservationRequest
 import com.example.project1.data.Reservation
@@ -46,10 +48,29 @@ fun ReservationForm(
 
         // Hiển thị trường name và quantity luôn
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Tên") })
-        OutlinedTextField(value = quantity, onValueChange = { quantity = it }, label = { Text("Số lượng") })
+        OutlinedTextField(
+            value = quantity,
+            onValueChange = {
+                if (it.all{char -> char.isDigit()}) {
+                    quantity = it
+                }
+            },
+            label = { Text("Số lượng") } ,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
 
         if (status != "Đã đến") {
-            OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Số điện thoại") })
+            OutlinedTextField(
+                value = phone,
+                onValueChange = {
+                    // Lọc chỉ nhận số
+                    if (it.all { char -> char.isDigit() }) {
+                        phone = it
+                    }
+                },
+                label = { Text("Số điện thoại") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
             OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
 
             OutlinedTextField(

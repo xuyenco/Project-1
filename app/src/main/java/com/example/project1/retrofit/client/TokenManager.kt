@@ -17,6 +17,12 @@ object TokenManager {
             .apply()
     }
 
+    fun saveTokens(accessToken: String) {
+        sharedPreferences.edit()
+            .putString("accessToken", accessToken)
+            .apply()
+    }
+
     fun getAccessToken(): String? {
         return sharedPreferences.getString("accessToken", null)
     }
