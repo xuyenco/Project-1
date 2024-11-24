@@ -12,5 +12,5 @@ data class Bill(
 )
 data class BillRequest(
     val orders_id: Int,
-    val staff_id: Int = 1  // Giá trị mặc định là 1
+    val staff_id: Int  // Giá trị mặc định là 1
 )

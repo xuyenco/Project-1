@@ -20,13 +20,10 @@ interface OrdersService {
     suspend fun getAllOrders(): List<Orders>
     @GET("/api/order/get/{id}")
     suspend fun getOrderById(@Path("id") id: Int): Orders
-
     @POST("/api/order/create")
     suspend fun createOrder(@Body orderRequest: OrderRequest): Orders
-
     @PATCH("/api/order/{id}")
     suspend fun editOrder(@Body orders: OrderRequest, @Path("id") id: Int): Orders
-
     @DELETE("/api/order/{id}")
     suspend fun deleteOrder(@Path("id") id: Int) : String
 
@@ -39,7 +36,7 @@ interface OrdersService {
     suspend fun getOrderItems(
         @Path("id") orderId: Int
     ): OrderItemsResponse
-    @POST("api/order")
+    @POST("api/order/assign")
     suspend fun createOrder(@Body request: CreateOrderRequest): Response<Orders>
     @POST("api/orderitem/assign")
     suspend fun assignItemsToOrder(@Body assignOrderRequest: List<AssignOrderItemRequest>): Response<List<Orders_Items>>

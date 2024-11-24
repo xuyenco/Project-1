@@ -22,7 +22,7 @@ data class Orders(
     }
 }
 data class CreateOrderRequest(
-    val reservation_id: Int,
+    val reservations_id: Int,
     val description: String,
     val status: String
 )

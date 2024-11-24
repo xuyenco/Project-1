@@ -171,6 +171,7 @@ fun OrderLayout(
                 menuList,
                 selectedReservation = selectedReservation.value, // Truyền Reservation đã chọn
                 onReservationClick = { reservation ->
+                    resetSelections()
                     selectedReservation.value = reservation // Cập nhật Reservation đã chọn
 
                     // Lấy danh sách bàn được đặt trong reservation

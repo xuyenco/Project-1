@@ -1,6 +1,9 @@
 package com.example.project1.ui.activity.orderMenu
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,23 +15,32 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.project1.data.Items
-import com.example.project1.data.Menu
 import com.example.project1.data.Reservation
 import com.example.project1.data.Tables
 import com.example.project1.data.Tables_Reservations
+import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.MenuItem
-import com.example.project1.ui.section.TableOrderItem
-import java.lang.StringBuilder
+import com.example.project1.ui.section.ReservationItem
+import kotlinx.coroutines.launch
 
 @Composable
 fun GridItem(
@@ -39,7 +51,7 @@ fun GridItem(
     val columns = if (items.isNotEmpty() && items.first() is Reservation) {
         GridCells.Fixed(2)
     } else {
-        GridCells.Fixed(5)
+        GridCells.Fixed(4)
     }
 
     LazyVerticalGrid(
@@ -63,70 +75,157 @@ fun ContentLeft(
     onReservationClick: (Reservation) -> Unit,
     onMenuItemClick: (Items) -> Unit
 ) {
-    val (items, setItems) = remember { mutableStateOf<List<Any>>(reservations) }
-    val (itemsType, setItemsType) = remember { mutableStateOf("reservations") } // Trạng thái lưu loại danh sách hiện tại
-    val searchText = remember { mutableStateOf("") } // Trạng thái lưu trữ văn bản tìm kiếm
+    val (items, setItems) = remember { mutableStateOf<List<Any>>(reservations.sortedBy { it.reservations_id }) }
+    val (itemsType, setItemsType) = remember { mutableStateOf("reservations") }
+    val (filterStatus, setFilterStatus) = remember { mutableStateOf("Tất cả") }
 
-    // Update items list based on external changes
-    LaunchedEffect(reservations, menuList) {
+    val orderStatuses = remember { mutableStateMapOf<Int, String>() }
+    val scope = rememberCoroutineScope()
+
+    val (nameSearch, setNameSearch) = remember { mutableStateOf("") }
+    val (tableSearch, setTableSearch) = remember { mutableStateOf("") }
+
+    LaunchedEffect(reservations) {
+        reservations.forEach { reservation ->
+            scope.launch {
+                try {
+                    val result = ApiClient.orderService.getOrderIdByReservationId(reservation.reservations_id)
+                    val orderStatus = result.status
+                    orderStatuses[reservation.reservations_id] = orderStatus
+                } catch (e: Exception) {
+                    orderStatuses[reservation.reservations_id] = "Error"
+                }
+            }
+        }
+    }
+    LaunchedEffect(nameSearch, tableSearch, filterStatus, itemsType) {
         if (itemsType == "reservations") {
-            setItems(reservations)
+            setItems(
+                reservations.filter { reservation ->
+                    val tableList = tablesReservations
+                        .filter { it.reservations_id == reservation.reservations_id }
+                        .mapNotNull { tablesRes -> tableItemList.find { it.tables_id == tablesRes.tables_id } }
+                        .joinToString(", ") { it.name }
+
+                    (filterStatus == "Tất cả" || reservation.status == filterStatus) &&
+                            (nameSearch.isEmpty() || reservation.name?.contains(nameSearch, ignoreCase = true) == true) &&
+                            (tableSearch.isEmpty() || tableList.contains(tableSearch, ignoreCase = true))
+                }.sortedBy { it.reservations_id }
+            )
+        } else if (itemsType == "menu") {
+            setItems(menuList.filter { it.name?.contains(nameSearch, ignoreCase = true) == true })
+        }
+    }
+    LaunchedEffect(reservations, menuList, filterStatus) {
+        val filteredReservations = when (filterStatus) {
+            "Tất cả" -> reservations
+            "Đang chờ" -> reservations.filter { it.status == "Đang chờ" }
+            "Đã đặt món" -> reservations.filter { it.status == "Đã đặt món" }
+            "Đã thanh toán" -> reservations.filter { it.status == "Hoàn thành" }
+            else -> reservations
+        }
+        if (itemsType == "reservations") {
+            setItems(filteredReservations.sortedBy { it.reservations_id })
         } else if (itemsType == "menu") {
             setItems(menuList)
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Thanh tìm kiếm
-        OutlinedTextField(
-            value = searchText.value,
-            onValueChange = { newText ->
-                searchText.value = newText
-                // Lọc danh sách dựa trên văn bản tìm kiếm và loại danh sách hiện tại
-                setItems(
-                    when (itemsType) {
-                        "reservations" -> reservations.filter { it.name?.contains(newText, ignoreCase = true) == true }
-                        "menu" -> menuList.filter { it.name?.contains(newText, ignoreCase = true) == true }
-                        else -> reservations
-                    }
-                )
-            },
-            label = { Text("Search") },
+        // Search Row
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
-        )
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // SearchBox cho Name
+            OutlinedTextField(
+                value = nameSearch,
+                onValueChange = setNameSearch,
+                label = { Text("Name") },
+                modifier = Modifier.weight(7f)
+            )
 
-        // Hiển thị GridItem
+            // SearchBox cho Table (chỉ hiện khi itemsType == "reservations")
+            if (itemsType == "reservations") {
+                OutlinedTextField(
+                    value = tableSearch,
+                    onValueChange = setTableSearch,
+                    label = { Text("Table") },
+                    modifier = Modifier.weight(3f)
+                )
+            }
+        }
+
+        // Filter Dropdown (chỉ hiện khi itemsType == "reservations")
+        if (itemsType == "reservations") {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Filter by Status:", modifier = Modifier.padding(end = 8.dp))
+
+                var expanded by remember { mutableStateOf(false) }
+
+                Box {
+                    Text(
+                        text = filterStatus,
+                        modifier = Modifier
+                            .clickable { expanded = true }
+                            .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        listOf("Tất cả", "Đang chờ", "Đã đặt món", "Hoàn thành").forEach { status ->
+                            DropdownMenuItem(
+                                text = { Text(status) },
+                                onClick = {
+                                    setFilterStatus(status)
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         GridItem(
             items = items,
-            modifier = Modifier
-                .weight(1f)
+            modifier = Modifier.weight(1f)
         ) { item ->
             when (item) {
                 is Reservation -> {
                     val isSelected = selectedReservation == item
-                    // Tạo danh sách bàn (tableList) cho mỗi Reservation
-                        val tableList = tablesReservations
-                        .filter { it.reservations_id == item.reservations_id } // Lọc các Tables_Reservations liên quan đến Reservation
-                        .mapNotNull { tablesRes ->
-                            tableItemList.find { it.tables_id == tablesRes.tables_id } // Tìm các Tables tương ứng
-                        }
-                        .joinToString(", ") { it.name } // Tạo chuỗi danh sách các bàn
+                    val tableList = tablesReservations
+                        .filter { it.reservations_id == item.reservations_id }
+                        .mapNotNull { tablesRes -> tableItemList.find { it.tables_id == tablesRes.tables_id } }
+                        .joinToString(", ") { it.name }
 
-                    // Hiển thị TableOrderItem với chuỗi danh sách bàn
-                    TableOrderItem(
+                    val orderStatus = orderStatuses[item.reservations_id] ?: "Loading..."
+
+                    ReservationItem(
                         reservation = item,
                         tablesList = tableList,
-                        onClick = { onReservationClick(item) } ,
-                        isSelected = isSelected
+                        onClick = { onReservationClick(item) },
+                        isSelected = isSelected,
+                        orderStatus = orderStatus
                     )
                 }
+
                 is Items -> {
-                    // Hiển thị các MenuItem
                     MenuItem(item, onClick = { onMenuItemClick(item) })
                 }
             }
@@ -134,18 +233,17 @@ fun ContentLeft(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Nút chuyển đổi giữa các danh sách
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(
                 onClick = {
-                    setItems(reservations) // Quay lại danh sách Reservations
-                    setItemsType("reservations") // Cập nhật loại danh sách
+                    setItems(reservations.sortedBy { it.reservations_id })
+                    setItemsType("reservations")
                 },
                 modifier = Modifier.weight(1f),
-                enabled = itemsType != "reservations" // Chỉ kích hoạt nút nếu đang ở danh sách khác
+                enabled = itemsType != "reservations"
             ) {
                 Text("Back to Reservations")
             }
@@ -153,11 +251,11 @@ fun ContentLeft(
 
             Button(
                 onClick = {
-                    setItems(menuList) // Chuyển sang danh sách Menu
-                    setItemsType("menu") // Cập nhật loại danh sách
+                    setItems(menuList)
+                    setItemsType("menu")
                 },
                 modifier = Modifier.weight(1f),
-                enabled = itemsType != "menu" // Chỉ kích hoạt nút nếu đang không ở danh sách Menu
+                enabled = itemsType != "menu"
             ) {
                 Text("Show Menu")
             }
