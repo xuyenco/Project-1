@@ -232,7 +232,7 @@ fun OrderLayout(
 @Preview(
     showBackground = true,
     showSystemUi = true,
-    device = Devices.PIXEL_C
+    device = Devices.PIXEL_TABLET
 )
 @Composable
 fun PreviewMenuLayout(){

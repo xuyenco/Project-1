@@ -3,6 +3,7 @@ package com.example.project1.ui.activity.orderMenu
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -137,32 +138,38 @@ fun ContentRight(
         val displayedMenus = if (reservation?.status == "Đã đặt món") orderItems.value else selectedMenus
         val displayedQuantities = if (reservation?.status == "Đã đặt món") quantitiesState.value else quantities
 
-        MenuListScreen(
-            selectedMenus = displayedMenus,
-            quantities = displayedQuantities,
-            onIncreaseQuantity = { itemId ->
-                if (reservation?.status == "Đã đặt món") {
-                    quantitiesState.value = quantitiesState.value.toMutableMap().apply {
-                        this[itemId] = (this[itemId] ?: 1) + 1
-                    }
-                } else {
-                    onIncreaseQuantity(itemId)
-                }
-            },
-            onDecreaseQuantity = { itemId ->
-                if (reservation?.status == "Đã đặt món") {
-                    quantitiesState.value = quantitiesState.value.toMutableMap().apply {
-                        val currentQuantity = this[itemId] ?: 1
-                        if (currentQuantity > 1) {
-                            this[itemId] = currentQuantity - 1
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            MenuListScreen(
+                selectedMenus = displayedMenus,
+                quantities = displayedQuantities,
+                onIncreaseQuantity = { itemId ->
+                    if (reservation?.status == "Đã đặt món") {
+                        quantitiesState.value = quantitiesState.value.toMutableMap().apply {
+                            this[itemId] = (this[itemId] ?: 1) + 1
                         }
+                    } else {
+                        onIncreaseQuantity(itemId)
                     }
-                } else {
-                    onDecreaseQuantity(itemId)
-                }
-            },
-            onRemoveItem = onRemoveMenuItem
-        )
+                },
+                onDecreaseQuantity = { itemId ->
+                    if (reservation?.status == "Đã đặt món") {
+                        quantitiesState.value = quantitiesState.value.toMutableMap().apply {
+                            val currentQuantity = this[itemId] ?: 1
+                            if (currentQuantity > 1) {
+                                this[itemId] = currentQuantity - 1
+                            }
+                        }
+                    } else {
+                        onDecreaseQuantity(itemId)
+                    }
+                },
+                onRemoveItem = onRemoveMenuItem
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -300,7 +307,6 @@ fun MenuListScreen(
     Log.d("MenuListScreen", "Quantities: $quantities")
     Surface(
         modifier = Modifier
-            .height(400.dp)
             .fillMaxSize(),
         color = Color.White
     ) {
