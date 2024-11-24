@@ -40,6 +40,7 @@ import com.example.project1.ui.activity.Login.LoginScreen
 import com.example.project1.ui.activity.orderMenu.OrderLayoutScreen
 import com.example.project1.ui.activity.OrderTab.OrderTabScreen
 import com.example.project1.ui.activity.ReservationTab.ReservationTabScreen
+import com.example.project1.ui.activity.orderMenu.getCurrentTime
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -181,6 +182,20 @@ suspend fun getAllReservations(): List<Reservation> {
     return try {
         withContext(Dispatchers.IO) {
             ApiClient.reservationService.getAllReservation()
+        }
+    } catch (e: Exception) {
+        Log.e("Api getAllReservations error", e.toString())
+        emptyList()
+    }
+}
+
+suspend fun getAllRecentReservations(): List<Reservation> {
+    return try {
+        withContext(Dispatchers.IO) {
+            val currentTimeMillis = getCurrentDateTime().time
+            ApiClient.reservationService.getAllReservation().filter { reservation ->
+                reservation.status != "Đang chờ" && reservation.time.time > currentTimeMillis - 24 * 60 * 60 * 1000
+            }
         }
     } catch (e: Exception) {
         Log.e("Api getAllReservations error", e.toString())

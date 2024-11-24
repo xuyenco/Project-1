@@ -529,10 +529,6 @@ suspend fun createBill(reservationId: Int, ordersId: Int, staffId: Int): Boolean
         )
         if (response.isSuccessful) {
             Log.d("createBill", "Bill created successfully.")
-            val assignOrderStatusResponse = ApiClient.orderService.editOrder(
-                OrderRequest("Đang chờ"),
-                ordersId
-            )
             val updateReservationResponse = ApiClient.reservationService.updateReservationStatus(
                 reservationId,
                 mapOf("status" to "Hoàn thành")

@@ -24,6 +24,7 @@ import com.example.project1.data.Reservation
 import com.example.project1.data.Tables
 import com.example.project1.data.Tables_Reservations
 import com.example.project1.ui.activity.getAllItems
+import com.example.project1.ui.activity.getAllRecentReservations
 import com.example.project1.ui.activity.getAllReservations
 import com.example.project1.ui.activity.getAllTables
 import com.example.project1.ui.activity.getAllTablesReservations
@@ -104,7 +105,7 @@ fun OrderLayoutScreen() {
                 // Fetch data từ API
                 tableList = getAllTables()
                 menuList = getAllItems()
-                reservationsList = getAllReservations()
+                reservationsList = getAllRecentReservations()
                 tablesReservationsList = getAllTablesReservations() 
 
                 isLoading = false

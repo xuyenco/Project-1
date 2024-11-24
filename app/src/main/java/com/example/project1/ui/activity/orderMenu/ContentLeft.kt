@@ -85,6 +85,10 @@ fun ContentLeft(
     val (nameSearch, setNameSearch) = remember { mutableStateOf("") }
     val (tableSearch, setTableSearch) = remember { mutableStateOf("") }
 
+    LaunchedEffect(itemsType) {
+        setNameSearch("")
+        setTableSearch("")
+    }
     LaunchedEffect(reservations) {
         reservations.forEach { reservation ->
             scope.launch {
