@@ -1,4 +1,4 @@
-package com.example.project1.ui.section
+package com.example.project1.ui.activity.ReservationTab
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,7 +38,7 @@ fun TableItem(
             .background(backgroundColor)
             .clickable {
                 onClick()
-                selectTable()
+
             },
         contentAlignment = Alignment.Center
     ) {
@@ -63,6 +63,9 @@ fun TableItem(
             modifier = Modifier
                 .align(Alignment.TopEnd) // Căn chỉnh Checkbox ở góc trên bên phải
                 .padding(8.dp)
+                .clickable {
+                    selectTable()
+                }
         ) {
             Checkbox(
                 checked = isSelected,

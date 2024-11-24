@@ -1,7 +1,6 @@
 package com.example.project1.ui.activity.Login
 
-import LoginViewModel
-import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +15,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -34,8 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -47,7 +51,8 @@ import com.example.project1.R
 fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -63,7 +68,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.kinsules___commission_by_laspinter_devfyb4),
+            painter = painterResource(id = R.drawable.login_background),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.matchParentSize()
@@ -80,7 +85,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
                 text = "Đăng nhập",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 24.dp),
-                color = Color.White
+                color = Color.Black
             )
             OutlinedTextField(
                 value = email,
@@ -97,6 +102,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
+
             )
             OutlinedTextField(
                 value = password,
@@ -105,7 +111,15 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
                 leadingIcon = {
                     Icon(imageVector = Icons.Default.Lock, contentDescription = null)
                 },
-                visualTransformation = PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -125,7 +139,8 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
                         },
                         onError = { errorMessage ->
                             // Xử lý lỗi (hiển thị thông báo, v.v.)
-                            Log.e("Login error", errorMessage)
+//                            Log.e("Login error", errorMessage)
+                            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                         }
                     )
                 },

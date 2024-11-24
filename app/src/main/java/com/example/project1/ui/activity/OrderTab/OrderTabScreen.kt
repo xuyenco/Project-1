@@ -2,10 +2,6 @@ package com.example.project1.ui.activity.OrderTab
 
 import android.util.Log
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,21 +13,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.project1.DataRequest.OrderRequest
 import com.example.project1.DataResponse.ItemsResponseForItemByOrder
 import com.example.project1.data.Orders
 import com.example.project1.data.Tables
-import com.example.project1.ui.activity.editOrder
 import com.example.project1.ui.activity.getAllOrders
 import com.example.project1.ui.activity.getItemByOrderId
 import com.example.project1.ui.activity.getTableByReservationId
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun OrderTabScreen() {
@@ -59,8 +47,9 @@ fun OrderTabScreen() {
                     val itemsByOrder = getItemByOrderId(order.orders_id)
                     val tableByOrder = getTableByReservationId(order.reservations_id)
 
+                    //yêu cầu để ra là order sẽ hiện lên 1 hoặc nhiều item dương, nhưng sẽ không có item âm, item âm sẽ trừ luôn vào item dương, trừ dần đến hết
                     if (itemsByOrder != null) {
-                        // test some shit
+                        // Lưu 2 giá trị item âm và dương riêng biệt để xử lý
                         val negativeItems = itemsByOrder.items.filter { it.quantity_used < 0 }
                         val positiveItems = itemsByOrder.items.filter { it.quantity_used > 0 }.toMutableList()
 
@@ -94,28 +83,15 @@ fun OrderTabScreen() {
                         ordersItemsList[order] = finalItemsList.toMutableStateList()
 
 
-                        //old shit
-//                        val finalItemsList = mutableListOf<ItemsResponseForItemByOrder>()
-//
-//                        for (item in itemsByOrder.items) {
-//                            if (item.quantity_used < 0) {
-//                                // Nếu item có quantity_used âm, tìm item tương ứng trong finalItemsList và cộng dồn
-//                                val existingItem = finalItemsList.find { it.items_id == item.items_id }
-//                                existingItem?.let {
-//                                    it.quantity_used += item.quantity_used
-//                                }
-//                            } else {
-//                                // Nếu item có quantity_used dương, thêm vào finalItemsList
-//                                finalItemsList.add(item)
-//                            }
-//                        }
-//
-//                        // Lưu finalItemsList vào ordersItemsList sau khi xử lý
-//                        ordersItemsList[order] = finalItemsList.toMutableStateList()
-
-                        // Nếu chưa có trong map, tạo list checkbox ban đầu cho order này
                         if (!checkedStatesMap.containsKey(order.orders_id)) {
-                            checkedStatesMap[order.orders_id] = List(positiveItems.size) { false }
+                            checkedStatesMap[order.orders_id] = List(finalItemsList.size) { false }
+                        } else {
+                            val currentCheckedStates = checkedStatesMap[order.orders_id]!!
+                            if (currentCheckedStates.size != finalItemsList.size) {
+                                checkedStatesMap[order.orders_id] = List(finalItemsList.size) { index ->
+                                    currentCheckedStates.getOrNull(index) ?: false
+                                }
+                            }
                         }
                     }
 
@@ -142,7 +118,7 @@ fun OrderTabScreen() {
                 Log.e("Error Api OrderTab", e.toString())
                 if (isFirstLoading) isFirstLoading = false
             }
-            delay(500000L)
+            delay(10000L)
         }
     }
 
@@ -167,57 +143,3 @@ fun OrderTabScreen() {
         }
     }
 }
-
-@Composable
-fun OrderTabContent(
-    ordersItemsList: SnapshotStateMap<Orders, SnapshotStateList<ItemsResponseForItemByOrder>>,
-    ordersTablesList: SnapshotStateMap<Orders, SnapshotStateList<Tables>>,
-    checkedStatesMap: MutableMap<Int, List<Boolean>>
-) {
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(5),
-        contentPadding = PaddingValues(5.dp),
-        content = {
-            items(ordersItemsList.size) { index ->
-                val order = ordersItemsList.keys.toList()[index]
-                val itemsForOrder = ordersItemsList[order] ?: emptyList()
-
-                // Lọc các Table liên kết với Order hiện tại
-                val tablesForOrder = ordersTablesList[order] ?: emptyList()
-                //Lấy description cho order
-                val description = order.description
-
-                // Lấy trạng thái checkbox hiện tại từ map
-                val checkedStates = checkedStatesMap[order.orders_id] ?: List(itemsForOrder.size) { false }
-
-                OrderTabItem(
-                    itemsList = itemsForOrder,
-                    tablesList = tablesForOrder,
-                    description = description,
-                    checkedStates = checkedStates,
-                    onCheckedChange = { updatedStates ->
-                        checkedStatesMap[order.orders_id] = updatedStates
-                    },
-                    onOrderCompleted = {
-                        val orderTemp = ordersItemsList.keys.firstOrNull { it.orders_id == order.orders_id }
-
-                        val orderRequest = orderTemp?.let {
-                            OrderRequest(status = "Hoàn thành")
-                        }
-                        CoroutineScope(Dispatchers.Main).launch {
-                            withContext(Dispatchers.IO) {
-                                if (orderRequest != null) {
-                                    editOrder(order.orders_id, orderRequest)
-                                }
-                            }
-                            ordersItemsList.remove(orderTemp)
-                            checkedStatesMap.remove(order.orders_id)
-                        }
-                    }
-                )
-            }
-        },
-        modifier = Modifier.fillMaxSize()
-    )
-}
-

@@ -27,18 +27,19 @@ object RetrofitClient {
     private lateinit var appContext: Context
     fun initialize(context: Context) {
         appContext = context.applicationContext  // Sử dụng applicationContext để tránh memory leak
+        TokenManager.initialize(context)
     }
-    // Authenticator để xử lý lỗi 401 và refresh token
+    // Authenticator để xử lý lỗi 410 và refresh token
     val tokenAuthenticator = object : Authenticator {
         override fun authenticate(route: Route?, response: Response): Request? {
-            return if (response.code == 401) { // Kiểm tra mã lỗi 401
+            return if (response.code == 410) { // Kiểm tra mã lỗi 410
                 val newAccessToken = runBlocking {
                     val refreshResponse = ApiClient.authService.refreshToken()
                     if (refreshResponse.isSuccessful) {
                         val newToken = refreshResponse.body()?.accessToken
                         newToken?.let {
                             // Lưu access token mới
-                            TokenManager.saveTokens(RetrofitClient.appContext, it, TokenManager.getRefreshToken(RetrofitClient.appContext) ?: "")
+//                            TokenManager.saveTokens(accessToken, refreshToken)
                             it
                         }
                     } else {
@@ -62,7 +63,7 @@ object RetrofitClient {
         val original = chain.request()
         val requestBuilder = original.newBuilder()
 
-        val accessToken = TokenManager.getAccessToken(appContext)  // Lấy accessToken từ TokenManager
+        val accessToken = TokenManager.getAccessToken()  // Lấy accessToken từ TokenManager
         accessToken?.let {
             requestBuilder.addHeader("Authorization", "Bearer $it")
         }

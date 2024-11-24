@@ -2,23 +2,32 @@ package com.example.project1.retrofit.client
 
 import android.content.Context
 import android.content.SharedPreferences
-
 object TokenManager {
-    fun saveTokens(context: Context, accessToken: String, refreshToken: String) {
-        val sharedPreferences: SharedPreferences = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
+    private lateinit var sharedPreferences: SharedPreferences
+
+    // Hàm khởi tạo để nhận context và tạo sharedPreferences
+    fun initialize(context: Context) {
+        sharedPreferences = context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
+    }
+
+    fun saveTokens(accessToken: String, refreshToken: String) {
         sharedPreferences.edit()
             .putString("accessToken", accessToken)
             .putString("refreshToken", refreshToken)
             .apply()
     }
 
-    fun getAccessToken(context: Context): String? {
-        return context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
-            .getString("accessToken", null)
+    fun saveTokens(accessToken: String) {
+        sharedPreferences.edit()
+            .putString("accessToken", accessToken)
+            .apply()
     }
 
-    fun getRefreshToken(context: Context): String? {
-        return context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
-            .getString("refreshToken", null)
+    fun getAccessToken(): String? {
+        return sharedPreferences.getString("accessToken", null)
+    }
+
+    fun getRefreshToken(): String? {
+        return sharedPreferences.getString("refreshToken", null)
     }
 }
