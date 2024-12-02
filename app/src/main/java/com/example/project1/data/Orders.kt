@@ -38,5 +38,6 @@ data class OrderDetailResponse(
     val items: List<Items>,         // Danh sách các món
     val quantities: Map<Int, Int>,   // Bản đồ số lượng theo items_id
     val description: String?,        // Mô tả
+    val status: String,
     val orderId: Int?                // ID của order
 )
