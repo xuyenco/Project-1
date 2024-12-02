@@ -131,18 +131,23 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
             )
             Button(
                 onClick = {
-                    viewModel.login(email, password,
-                        onSuccess = {
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true } // Xóa màn hình login khỏi backstack
-                            }
-                        },
-                        onError = { errorMessage ->
-                            // Xử lý lỗi (hiển thị thông báo, v.v.)
+                    if (email.isEmpty() || password.isEmpty()) {
+                        Toast.makeText(context, "Vui lý nhap day du thong tin", Toast.LENGTH_SHORT)
+                            .show()
+                    } else {
+                        viewModel.login(email, password,
+                            onSuccess = {
+                                navController.navigate("home") {
+                                    popUpTo("login") { inclusive = true } // Xóa màn hình login khỏi backstack
+                                }
+                            },
+                            onError = { errorMessage ->
+                                // Xử lý lỗi (hiển thị thông báo, v.v.)
 //                            Log.e("Login error", errorMessage)
-                            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                        }
-                    )
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

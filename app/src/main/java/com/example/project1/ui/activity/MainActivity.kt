@@ -37,10 +37,9 @@ import com.example.project1.data.Tables_Reservations
 import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.retrofit.client.RetrofitClient
 import com.example.project1.ui.activity.Login.LoginScreen
-import com.example.project1.ui.activity.orderMenu.OrderLayoutScreen
 import com.example.project1.ui.activity.OrderTab.OrderTabScreen
 import com.example.project1.ui.activity.ReservationTab.ReservationTabScreen
-import com.example.project1.ui.activity.orderMenu.getCurrentTime
+import com.example.project1.ui.activity.orderMenu.OrderLayoutScreen
 import com.example.project1.ui.section.NavigationDrawerItem
 import com.example.project1.ui.theme.Project1Theme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -81,7 +80,7 @@ class MainActivity : ComponentActivity() {
 
                     val navController = rememberNavController()
 
-                    NavHost(navController = navController, startDestination = "home") {
+                    NavHost(navController = navController, startDestination = "login") {
                         composable("login") { LoginScreen(navController) }
                         composable("home") { HomeScreen() }
                     }

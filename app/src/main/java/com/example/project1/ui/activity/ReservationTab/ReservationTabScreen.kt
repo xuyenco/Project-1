@@ -185,7 +185,7 @@ fun ReservationTabScreen(){
                             }
 
                             if (selectedReservation == null) {
-                                if (selectedTableIds != null && isAvailable) {
+                                if (selectedTableIds.size != 0 && isAvailable) {
                                     val reservation = ApiClient.reservationService.createReservation(reservationRequest)
                                     for (id in selectedTableIds.filterNotNull()) {
                                         val tableReservation = Tables_ReservationRequest(
@@ -199,7 +199,7 @@ fun ReservationTabScreen(){
                                     }
                                 } else {
                                     withContext(Dispatchers.Main) {
-                                        if (selectedTableIds == null) {
+                                        if (selectedTableIds.size == 0) {
                                             Toast.makeText(context, "Please select table", Toast.LENGTH_SHORT).show()
                                         }
                                         if (!isAvailable) {

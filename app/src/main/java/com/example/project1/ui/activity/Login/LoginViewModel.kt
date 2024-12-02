@@ -39,7 +39,7 @@ class LoginViewModel : ViewModel() {
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        onError("Đăng nhập thất bại: ${response.message()}")
+                        onError("Đăng nhập thất bại: Sai email hoặc mật khẩu")
                     }
                 }
             } catch (e: HttpException) {
