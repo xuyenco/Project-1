@@ -39,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +56,9 @@ import com.example.project1.data.OrderDetailResponse
 import com.example.project1.data.Reservation
 import com.example.project1.data.Tables
 import com.example.project1.retrofit.client.ApiClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Date
 
 @Composable
@@ -78,6 +82,7 @@ fun ContentRight(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // State để lưu danh sách món và số lượng khi fetch được từ API
+    val orderStatus = remember { mutableStateOf<String>("") }
     val orderItems = remember { mutableStateOf<List<Items>>(emptyList()) }
     val quantitiesState = remember { mutableStateOf<Map<Int, Int>>(emptyMap()) }
     val descriptionState = remember { mutableStateOf<String>("") }
@@ -90,7 +95,9 @@ fun ContentRight(
             result?.let { response ->
                 Log.d("ContentRight", "Fetched order items: ${response.items}")
                 Log.d("ContentRight", "Fetched quantities: ${response.quantities}")
+                Log.d("ContentRight", "Fetched status: ${response.status}")
 
+                orderStatus.value = response.status
                 orderItems.value = response.items
                 quantitiesState.value = response.quantities
                 descriptionState.value = response.description ?: ""
@@ -202,7 +209,7 @@ fun ContentRight(
             }
         }
         Text(
-            text = "Total Amount: $$totalAmount",
+            text = "Total Amount: $totalAmount vnd",
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.fillMaxWidth()
@@ -214,6 +221,7 @@ fun ContentRight(
         ) {
             Button(
                 onClick = {
+                    status = "Cancel successfully!"
                     onCancel()
                     description = ""
                 },
@@ -222,13 +230,17 @@ fun ContentRight(
                 Text("Cancel")
             }
             Spacer(modifier = Modifier.width(8.dp))
+            val isCreateBillButtonEnabled = (orderStatus.value == "Hoàn thành" && reservation?.status != "Hoàn thành")
             Button(
+                enabled = isCreateBillButtonEnabled,
                 onClick = { showBillDialog = true }, // Hiển thị hộp thoại khi nhấn "Create Bill"
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Create Bill")
             }
             Spacer(modifier = Modifier.width(8.dp))
+
+            val isOKButtonEnabled = (reservation != null && reservation?.status != "Hoàn thành")
             Button(
                 onClick = {
                     description = ""
@@ -239,12 +251,15 @@ fun ContentRight(
                             } else {
                                 createNewOrder(description, selectedMenus, quantities, reservation?.reservations_id ?: -1)
                             }
-                            status = statusMessage
+                            withContext(Dispatchers.Main) { // Chuyển về Main thread
+                                status = statusMessage
+                            }
                             Log.d("ShowStatus", "Status: $status")
                         }
                     }
                     onCancel()
                 },
+                enabled = isOKButtonEnabled,
                 modifier = Modifier.weight(1f)
             ) {
                 Text("OK")
@@ -253,12 +268,13 @@ fun ContentRight(
 
         // Hiển thị hộp thoại chi tiết hóa đơn nếu `showBillDialog` là true
         if (showBillDialog && reservation != null) {
+            val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
             BillDialog(
                 reservation = reservation,
                 tablesList = selectedTables.joinToString(separator = ", ") { it.name },
                 orderItems = orderItems.value,
                 quantities = quantitiesState.value,
-                createdAt = reservation.created_at.toString(),
+                time = dateFormatter.format(reservation.time.time).toString(),
                 onClose = { showBillDialog = false },
                 onSave = { staffId ->
                     orderIdState.value?.let { orderId ->
@@ -290,7 +306,7 @@ fun ContentRight(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Hiển thị kết quả
-        StatusSnackbar(snackbarHostState = snackbarHostState, status = status)
+        StatusSnackbar(snackbarHostState = snackbarHostState, status = status,onStatusReset = { status = "" })
     }
 }
 
@@ -481,6 +497,7 @@ suspend fun fetchOrderDetails(
         // Gọi API lấy orderId từ reservationId
         val result = ApiClient.orderService.getOrderIdByReservationId(reservationId)
         val orderId = result.orders_id
+        val orderStatus = result.status
         Log.d("fetchOrderDetails", "Received orderId: $orderId")
 
         // Gọi API lấy chi tiết các món trong order và description
@@ -512,7 +529,7 @@ suspend fun fetchOrderDetails(
         Log.d("fetchOrderDetails", "Quantities: $quantities")
         Log.d("fetchOrderDetails", "Description: $description")
 
-        OrderDetailResponse(aggregatedItems, quantities, description, orderId)
+        OrderDetailResponse(aggregatedItems, quantities, description, orderStatus, orderId)
     } catch (e: Exception) {
         Log.e("fetchOrderDetails", "Error fetching order details", e)
         null
@@ -553,7 +570,7 @@ fun BillDialog(
     tablesList: String,
     orderItems: List<Items>,
     quantities: Map<Int, Int>,
-    createdAt: String,
+    time: String,
     onClose: () -> Unit,
     onSave: (Int) -> Unit
 ) {
@@ -577,24 +594,26 @@ fun BillDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(modifier = Modifier
-                    .fillMaxWidth()){
-                    Text("Staff ID:")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(text = "Staff ID:")
                     OutlinedTextField(
                         value = staffId,
                         onValueChange = { staffId = it },
                         modifier = Modifier
-                            .padding(start = 10.dp)
+                            .padding(start = 10.dp, end = 10.dp)
                             .width(200.dp),
                         singleLine = true
                     )
+                    if(staffId.isEmpty()) Text(text = "Missing staff ID", color = Color.Red,fontStyle = FontStyle.Italic)
                 }
-                Text("Reservation ID: ${reservation.reservations_id}")
                 Spacer(modifier = Modifier.height(1.dp))
-
-
+                Text("Reservation ID: ${reservation.reservations_id}")
                 Text("Reserved Tables: $tablesList")
-                Text("Check-In Time: $createdAt")
+                Text("Check-In Time: $time")
                 Text("Check-Out Time: ${getCurrentTime()}")
                 Text("Customer Name: ${reservation.name}")
                 Text("Phone: ${reservation.phone}")
@@ -633,7 +652,7 @@ fun BillDialog(
                     item.price * quantity
                 }
                 Text(
-                    text = "Total Amount: $$totalAmount",
+                    text = "Total Amount: $totalAmount vnd",
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.End)
                 )
@@ -648,7 +667,10 @@ fun BillDialog(
                         Text("Close")
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onSave(staffId.toInt()) }) {
+                    Button(
+                        enabled = staffId.isNotEmpty(),
+                        onClick = { onSave(staffId.toInt()) }
+                    ) {
                         Text("Save")
                     }
                 }
@@ -664,13 +686,18 @@ fun getCurrentTime(): String {
     return dateFormatter.format(currentTime)
 }
 @Composable
-fun StatusSnackbar(snackbarHostState: SnackbarHostState, status: String) {
+fun StatusSnackbar(
+    snackbarHostState: SnackbarHostState,
+    status: String,
+    onStatusReset: () -> Unit
+) {
     LaunchedEffect(status) {
         if (status.isNotEmpty()) {
             snackbarHostState.showSnackbar(
                 message = status,
                 duration = SnackbarDuration.Short
             )
+            onStatusReset()
         }
     }
 
@@ -689,7 +716,6 @@ fun StatusSnackbar(snackbarHostState: SnackbarHostState, status: String) {
 }
 @Preview(
     showBackground = true,
-    showSystemUi = true,
     device = Devices.PIXEL_C)
 @Composable
 fun PreviewBillDialog() {
@@ -718,13 +744,14 @@ fun PreviewBillDialog() {
         2 to 1, // 1 Pasta
         3 to 3  // 3 Sodas
     )
+    val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
 
     BillDialog(
         reservation = fakeReservation,
         tablesList = fakeTablesList,
         orderItems = fakeOrderItems,
         quantities = fakeQuantities,
-        createdAt = fakeReservation.created_at.toString(),
+        time = dateFormatter.format(fakeReservation.time.time).toString(),
         onClose = {},
         onSave = {}
     )

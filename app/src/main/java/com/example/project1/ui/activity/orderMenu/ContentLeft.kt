@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -40,6 +41,7 @@ import com.example.project1.data.Tables_Reservations
 import com.example.project1.retrofit.client.ApiClient
 import com.example.project1.ui.section.MenuItem
 import com.example.project1.ui.section.ReservationItem
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -79,7 +81,7 @@ fun ContentLeft(
     val (itemsType, setItemsType) = remember { mutableStateOf("reservations") }
     val (filterStatus, setFilterStatus) = remember { mutableStateOf("Tất cả") }
 
-    val orderStatuses = remember { mutableStateMapOf<Int, String>() }
+    val orderStatuses = remember { mutableStateMapOf <Int, String>() }
     val scope = rememberCoroutineScope()
 
     val (nameSearch, setNameSearch) = remember { mutableStateOf("") }
@@ -89,17 +91,21 @@ fun ContentLeft(
         setNameSearch("")
         setTableSearch("")
     }
-    LaunchedEffect(reservations) {
-        reservations.forEach { reservation ->
-            scope.launch {
-                try {
-                    val result = ApiClient.orderService.getOrderIdByReservationId(reservation.reservations_id)
-                    val orderStatus = result.status
-                    orderStatuses[reservation.reservations_id] = orderStatus
-                } catch (e: Exception) {
-                    orderStatuses[reservation.reservations_id] = "Error"
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            reservations.forEach { reservation ->
+                scope.launch {
+                    try {
+                        val result = ApiClient.orderService.getOrderIdByReservationId(reservation.reservations_id)
+                        val orderStatus = result.status
+                        orderStatuses[reservation.reservations_id] = orderStatus
+                    } catch (e: Exception) {
+                        orderStatuses[reservation.reservations_id] = "Error"
+                    }
                 }
             }
+            delay(5000L)
         }
     }
     LaunchedEffect(nameSearch, tableSearch, filterStatus, itemsType) {
@@ -117,21 +123,29 @@ fun ContentLeft(
                 }.sortedBy { it.reservations_id }
             )
         } else if (itemsType == "menu") {
-            setItems(menuList.filter { it.name?.contains(nameSearch, ignoreCase = true) == true })
+            setItems(menuList.filter { item ->
+                (filterStatus == "Tất cả" || item.category == filterStatus) &&
+                        (item.name?.contains(nameSearch, ignoreCase = true) == true) })
         }
     }
     LaunchedEffect(reservations, menuList, filterStatus) {
-        val filteredReservations = when (filterStatus) {
-            "Tất cả" -> reservations
-            "Đang chờ" -> reservations.filter { it.status == "Đang chờ" }
-            "Đã đặt món" -> reservations.filter { it.status == "Đã đặt món" }
-            "Đã thanh toán" -> reservations.filter { it.status == "Hoàn thành" }
-            else -> reservations
-        }
         if (itemsType == "reservations") {
+            val filteredReservations = when (filterStatus) {
+                "Tất cả" -> reservations
+                "Chưa đặt món" -> reservations.filter { it.status == "Đã đến" }
+                "Đã đặt món" -> reservations.filter { it.status == "Đã đặt món" }
+                "Đã thanh toán" -> reservations.filter { it.status == "Hoàn thành" }
+                else -> reservations
+            }
             setItems(filteredReservations.sortedBy { it.reservations_id })
         } else if (itemsType == "menu") {
-            setItems(menuList)
+            val filteredMenuItems = when (filterStatus) {
+                "Tất cả" -> menuList
+                "Đồ uống" -> menuList.filter { it.category == "Đồ uống" }
+                "Món ăn" -> menuList.filter { it.category == "Món ăn" }
+                else -> menuList
+            }
+            setItems(filteredMenuItems)
         }
     }
 
@@ -166,41 +180,45 @@ fun ContentLeft(
             }
         }
 
-        // Filter Dropdown (chỉ hiện khi itemsType == "reservations")
-        if (itemsType == "reservations") {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Filter by Status:", modifier = Modifier.padding(end = 8.dp))
+        // Filter Dropdown
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Filter by:", modifier = Modifier.padding(end = 8.dp))
 
-                var expanded by remember { mutableStateOf(false) }
+            var expanded by remember { mutableStateOf(false) }
 
-                Box {
-                    Text(
-                        text = filterStatus,
-                        modifier = Modifier
-                            .clickable { expanded = true }
-                            .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
+            Box {
+                Text(
+                    text = filterStatus,
+                    modifier = Modifier
+                        .clickable { expanded = true }
+                        .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(4.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        listOf("Tất cả", "Đang chờ", "Đã đặt món", "Hoàn thành").forEach { status ->
-                            DropdownMenuItem(
-                                text = { Text(status) },
-                                onClick = {
-                                    setFilterStatus(status)
-                                    expanded = false
-                                }
-                            )
-                        }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    val filterOptions = if (itemsType == "reservations") {
+                        listOf("Tất cả", "Chưa đặt món", "Đã đặt món", "Đã thanh toán")
+                    } else {
+                        listOf("Tất cả", "Đồ uống", "Món ăn")
+                    }
+
+                    filterOptions.forEach { status ->
+                        DropdownMenuItem(
+                            text = { Text(status) },
+                            onClick = {
+                                setFilterStatus(status)
+                                expanded = false
+                            }
+                        )
                     }
                 }
             }
@@ -245,6 +263,7 @@ fun ContentLeft(
                 onClick = {
                     setItems(reservations.sortedBy { it.reservations_id })
                     setItemsType("reservations")
+                    setFilterStatus("Tất cả")
                 },
                 modifier = Modifier.weight(1f),
                 enabled = itemsType != "reservations"
@@ -257,6 +276,7 @@ fun ContentLeft(
                 onClick = {
                     setItems(menuList)
                     setItemsType("menu")
+                    setFilterStatus("Tất cả")
                 },
                 modifier = Modifier.weight(1f),
                 enabled = itemsType != "menu"
