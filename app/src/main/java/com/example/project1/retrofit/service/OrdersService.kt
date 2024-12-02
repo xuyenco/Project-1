@@ -1,5 +1,6 @@
 package com.example.project1.retrofit.service
 
+import com.example.project1.DataRequest.OrderMenuRequest
 import com.example.project1.DataRequest.OrderRequest
 import com.example.project1.data.AssignOrderItemRequest
 import com.example.project1.data.BillRequest
@@ -24,6 +25,8 @@ interface OrdersService {
     suspend fun createOrder(@Body orderRequest: OrderRequest): Orders
     @PATCH("/api/order/{id}")
     suspend fun editOrder(@Body orders: OrderRequest, @Path("id") id: Int): Orders
+    @PATCH("/api/order/{id}")
+    suspend fun updateOrder(@Body orders: OrderMenuRequest, @Path("id") id: Int): Orders
     @DELETE("/api/order/{id}")
     suspend fun deleteOrder(@Path("id") id: Int) : String
 

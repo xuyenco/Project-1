@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.project1.DataRequest.OrderMenuRequest
 import com.example.project1.DataRequest.OrderRequest
 import com.example.project1.data.AssignOrderItemRequest
 import com.example.project1.data.BillRequest
@@ -142,9 +143,20 @@ fun ContentRight(
             fontWeight = FontWeight.Bold
         )
         // Sử dụng orderItems và quantitiesState khi reservation?.status == "Ordered"
-        val displayedMenus = if (reservation?.status == "Đã đặt món") orderItems.value else selectedMenus
-        val displayedQuantities = if (reservation?.status == "Đã đặt món") quantitiesState.value else quantities
-
+        val displayedMenus = remember(orderItems.value, selectedMenus, reservation?.status) {
+            if (reservation?.status == "Đã đặt món") {
+                (orderItems.value + selectedMenus).distinctBy { it.items_id }
+            } else {
+                selectedMenus
+            }
+        }
+        var displayedQuantities = remember(quantitiesState.value, quantities, reservation?.status) {
+            if (reservation?.status == "Đã đặt món") {
+                quantitiesState.value + quantities
+            } else {
+                quantities
+            }
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -156,7 +168,7 @@ fun ContentRight(
                 onIncreaseQuantity = { itemId ->
                     if (reservation?.status == "Đã đặt món") {
                         quantitiesState.value = quantitiesState.value.toMutableMap().apply {
-                            this[itemId] = (this[itemId] ?: 1) + 1
+                            this[itemId] = (this[itemId] ?: 0) + 1
                         }
                     } else {
                         onIncreaseQuantity(itemId)
@@ -186,7 +198,13 @@ fun ContentRight(
         )
         TextField(
             value = if (reservation?.status == "Đã đặt món") descriptionState.value else description,
-            onValueChange = { description = it },
+            onValueChange = {
+                if (reservation?.status == "Đã đặt món") {
+                    descriptionState.value = it // Cập nhật descriptionState
+                } else {
+                    description = it // Cập nhật description
+                }
+            },
             label = { Text("Enter description") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = false,
@@ -197,8 +215,8 @@ fun ContentRight(
         val totalAmount = remember(orderItems.value, quantitiesState.value, selectedMenus, quantities, reservation?.status) {
             if (reservation?.status == "Đã đặt món") {
                 // Tính toán tổng tiền khi trạng thái của reservation là "Ordered"
-                orderItems.value.sumOf { item ->
-                    val quantity = quantitiesState.value[item.items_id] ?: 0
+                displayedMenus.sumOf { item ->
+                    val quantity = displayedQuantities[item.items_id] ?: 0
                     item.price * quantity
                 }
             } else {
@@ -248,7 +266,7 @@ fun ContentRight(
                     scope.launch {
                         if (reservation != null) {
                             val statusMessage = if (reservation?.status == "Đã đặt món") {
-                                updateExistingOrder(description,orderItems.value , quantities, quantitiesState = quantitiesState.value, reservation.reservations_id, orderIdState.value)
+                                updateExistingOrder(descriptionState.value, displayedMenus , quantities, quantitiesState = quantitiesState.value, reservation.reservations_id, orderIdState.value)
                             } else {
                                 createNewOrder(description, selectedMenus, quantities, reservation?.reservations_id ?: -1)
                             }
@@ -450,25 +468,33 @@ suspend fun updateExistingOrder(
     return try {
         Log.d("updateExistingOrder", "Reservation ID: $reservationId")
         Log.d("updateExistingOrder", "Order ID: $orderId")
-        val assignOrderStatusResponse = ApiClient.orderService.editOrder(
-            OrderRequest("Đang chờ"),
+        val assignOrderStatusResponse = ApiClient.orderService.updateOrder(
+            OrderMenuRequest("Đang chờ",description),
             orderId ?: return "Error: Missing order ID"
         )
         // Tính sự thay đổi số lượng cho mỗi món
         val itemUpdates = selectedMenus.mapNotNull { menu ->
             val currentQuantity = menu.quantity_used
+            val newQuantity = quantities[menu.items_id] ?: 0
             val existingQuantity = quantitiesState[menu.items_id] ?: 0
             val quantityDifference =existingQuantity- currentQuantity
 
-            Log.d("updateExistingOrder", "Item ID: ${menu.items_id}, Current Quantity: $currentQuantity, Existing Quantity: $existingQuantity, Difference: $quantityDifference")
+            // Nhận biết món mới hoặc có thay đổi về số lượng
+            if (newQuantity > 0 && newQuantity != existingQuantity) {
+                Log.d("updateExistingOrder", "Updating Item ID: ${menu.items_id}, New Quantity: $newQuantity, Existing Quantity: $existingQuantity")
 
-            if (quantityDifference != 0) {
+                AssignOrderItemRequest(
+                    items_id = menu.items_id,
+                    orders_id = orderId,
+                    quantity = newQuantity - existingQuantity
+                )
+            } else if (quantityDifference != 0) {
                 AssignOrderItemRequest(
                     items_id = menu.items_id,
                     orders_id = orderId ?: return "Error: Missing order ID",
                     quantity = quantityDifference
                 )
-            } else {
+            }else{
                 null
             }
         }
