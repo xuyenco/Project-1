@@ -1,6 +1,7 @@
 package com.example.project1.ui.activity.ReservationTab
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.project1.DataRequest.ReservationRequest
@@ -36,6 +38,7 @@ fun ReservationForm(
     var quantity by remember { mutableStateOf(reservation?.quantity?.toString() ?: "") }
     var status by remember { mutableStateOf("Đang chờ") } // Trạng thái mặc định cho đặt bàn mới
     var toggleStatus by remember { mutableStateOf(false) } // Trạng thái của nút bật/tắt
+    val context = LocalContext.current
 
     // Chuyển các tableId thành chuỗi để hiển thị
     val selectedTablesText = selectedTableIds.filterNotNull().joinToString(", ") { "Table $it" }
@@ -102,15 +105,21 @@ fun ReservationForm(
         Button(onClick = {
             val parsedTime = inputTime.toDate("yyyy/MM/dd HH:mm:ss")
             if (parsedTime != null) {
-                val reservationRequest = ReservationRequest(
-                    quantity = quantity.toInt(),
-                    name = name,
-                    phone = phone,
-                    email = email,
-                    time = parsedTime,
-                    status = status, // Sử dụng trạng thái đã chọn
-                )
-                onSubmit(reservationRequest)
+                if(quantity.isEmpty()){
+                    Toast.makeText(context,"Vui long nhap so luong", Toast.LENGTH_LONG).show()
+                }else if(name.isEmpty()){
+                    Toast.makeText(context,"Vui long nhap ten", Toast.LENGTH_LONG).show()
+                }else {
+                    val reservationRequest = ReservationRequest(
+                        quantity = quantity.toInt(),
+                        name = name,
+                        phone = phone,
+                        email = email,
+                        time = parsedTime,
+                        status = status, // Sử dụng trạng thái đã chọn
+                    )
+                    onSubmit(reservationRequest)
+                }
             } else {
                 Log.e("Reservation", "Định dạng thời gian không hợp lệ")
             }
